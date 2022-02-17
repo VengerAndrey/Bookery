@@ -30,9 +30,9 @@ public class StorageController : ControllerBase
 
     [HttpGet]
     [Route("{id}")]
-    public IActionResult Download(Guid id)
+    public async Task<IActionResult> Download(Guid id)
     {
-        var stream = _storageService.Download(id);
+        var stream = await _storageService.Download(id);
 
         if (stream == Stream.Null)
         {

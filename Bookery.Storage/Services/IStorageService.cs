@@ -3,5 +3,5 @@
 public interface IStorageService
 {
     Task<bool> Upload(Guid id, Stream content);
-    Stream Download(Guid id);
+    Task<Stream> Download(Guid id);
 }

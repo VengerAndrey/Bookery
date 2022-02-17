@@ -6,7 +6,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
-builder.Services.AddSingleton<IStorageService, LocalStorageService>();
+builder.Services.AddSingleton<IStorageService, BlobStorageService>(_ =>
+    new BlobStorageService(
+        builder.Configuration.GetConnectionString("StorageAccount"),
+        builder.Configuration["BlobContainer"]));
 
 var app = builder.Build();
 

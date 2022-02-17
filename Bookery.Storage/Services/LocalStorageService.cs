@@ -2,7 +2,12 @@
 
 public class LocalStorageService : IStorageService
 {
-    private readonly string _rootPath = @"D:/localStorage/data";
+    private readonly string _rootPath = @"localStorage/data";
+
+    public LocalStorageService()
+    {
+        Directory.CreateDirectory(_rootPath);
+    }
 
     public async Task<bool> Upload(Guid id, Stream content)
     {
@@ -18,16 +23,16 @@ public class LocalStorageService : IStorageService
         }
     }
 
-    public Stream Download(Guid id)
+    public Task<Stream> Download(Guid id)
     {
         try
         {
             var stream = File.OpenRead(Path.Combine(_rootPath, id.ToString()));
-            return stream;
+            return Task.FromResult(stream as Stream);
         }
         catch (Exception e)
         {
-            return Stream.Null;
+            return Task.FromResult(Stream.Null);
         }
     }
 }
