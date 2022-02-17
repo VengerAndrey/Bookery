@@ -1,0 +1,187 @@
+{
+  "Routes": [
+    {
+      "DownstreamScheme": "http",
+      "DownstreamPathTemplate": "/api/Authentication/sign-out",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5165
+        }
+      ],
+      "UpstreamPathTemplate": "/Authentication/sign-out",
+      "UpstreamHttpMethod": [
+        "DELETE"
+      ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      },
+      "AddHeadersToRequest": {
+        "Email": "Claims[Email] > value > |"
+      }
+    },
+    {
+      "DownstreamScheme": "http",
+      "DownstreamPathTemplate": "/api/Authentication/{any}",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5165
+        }
+      ],
+      "UpstreamPathTemplate": "/Authentication/{any}",
+      "UpstreamHttpMethod": [
+        "POST"
+      ]
+    },
+    {
+      "DownstreamScheme": "http",
+      "DownstreamPathTemplate": "/api/Node/Private{path}",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5129
+        }
+      ],
+      "UpstreamPathTemplate": "/Node/Private{path}",
+      "UpstreamHttpMethod": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE"
+      ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      },
+      "AddHeadersToRequest": {
+        "UserId": "Claims[UserId] > value > |"
+      }
+    },
+    {
+      "DownstreamScheme": "http",
+      "DownstreamPathTemplate": "/api/Node/Shared{path}",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5129
+        }
+      ],
+      "UpstreamPathTemplate": "/Node/Shared{path}",
+      "UpstreamHttpMethod": [
+        "GET",
+        "POST",
+        "PUT"
+      ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      },
+      "AddHeadersToRequest": {
+        "UserId": "Claims[UserId] > value > |"
+      }
+    },
+    {
+      "DownstreamScheme": "http",
+      "DownstreamPathTemplate": "/api/Node/Sharing{path}",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5129
+        }
+      ],
+      "UpstreamPathTemplate": "/Node/Sharing{path}",
+      "UpstreamHttpMethod": [
+        "GET",
+        "POST"
+      ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      },
+      "AddHeadersToRequest": {
+        "UserId": "Claims[UserId] > value > |"
+      }
+    },
+    {
+      "DownstreamScheme": "http",
+      "DownstreamPathTemplate": "/api/Storage/{id}",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5129
+        }
+      ],
+      "UpstreamPathTemplate": "/Storage/{id}",
+      "UpstreamHttpMethod": [
+        "GET",
+        "POST"
+      ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      },
+      "AddHeadersToRequest": {
+        "UserId": "Claims[UserId] > value > |"
+      }
+    },
+    {
+      "DownstreamScheme": "http",
+      "DownstreamPathTemplate": "/api/SignUp/",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5074
+        }
+      ],
+      "UpstreamPathTemplate": "/SignUp/",
+      "UpstreamHttpMethod": [
+        "POST"
+      ]
+    },
+    {
+      "DownstreamScheme": "http",
+      "DownstreamPathTemplate": "/api/User/{any}",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5074
+        }
+      ],
+      "UpstreamPathTemplate": "/User/{any}",
+      "UpstreamHttpMethod": [
+        "GET"
+      ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      },
+      "AddHeadersToRequest": {
+        "UserId": "Claims[UserId] > value > |"
+      }
+    },
+    {
+      "DownstreamScheme": "http",
+      "DownstreamPathTemplate": "/api/Photo/",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5074
+        }
+      ],
+      "UpstreamPathTemplate": "/Photo/",
+      "UpstreamHttpMethod": [
+        "GET",
+        "POST"
+      ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      },
+      "AddHeadersToRequest": {
+        "UserId": "Claims[UserId] > value > |"
+      }
+    }
+  ]
+}
