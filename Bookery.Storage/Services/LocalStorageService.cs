@@ -35,4 +35,9 @@ public class LocalStorageService : IStorageService
             return Task.FromResult(Stream.Null);
         }
     }
+
+    public Task<bool> Delete(Guid id)
+    {
+        throw new NotImplementedException();
+    }
 }

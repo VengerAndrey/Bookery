@@ -11,6 +11,12 @@ builder.Services.AddSingleton<IStorageService, BlobStorageService>(_ =>
         builder.Configuration.GetConnectionString("StorageAccount"),
         builder.Configuration["BlobContainer"]));
 
+var rabbitMq = builder.Configuration.GetSection("RabbitMq");
+
+builder.Services.AddHostedService<StorageConsumer>(provider => new StorageConsumer(rabbitMq["Host"],
+    Convert.ToInt32(rabbitMq["Port"]), rabbitMq["Username"],
+    rabbitMq["Password"], provider.GetRequiredService<IStorageService>()));
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

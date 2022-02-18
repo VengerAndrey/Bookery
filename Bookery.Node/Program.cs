@@ -29,6 +29,12 @@ builder.Services.AddSingleton<IUserNodeService, UserNodeService>();
 builder.Services.AddSingleton<IUserService, UserService>();
 builder.Services.AddSingleton<IStorageService, StorageService>();
 
+var rabbitMq = builder.Configuration.GetSection("RabbitMq");
+
+builder.Services.AddSingleton<IStorageProducer, StorageProducer>(_ =>
+    new StorageProducer(rabbitMq["Host"], Convert.ToInt32(rabbitMq["Port"]), rabbitMq["Username"],
+        rabbitMq["Password"]));
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

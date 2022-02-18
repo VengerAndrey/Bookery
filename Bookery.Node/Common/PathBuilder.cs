@@ -64,6 +64,10 @@ public class PathBuilder
 
     public string GetLastNode(string path)
     {
+        if (string.IsNullOrEmpty(path))
+        {
+            return "";
+        }
         path = path.TrimEnd('/');
         return path.Substring(path.LastIndexOf("/") + 1, path.Length - path.LastIndexOf("/") - 1);
     }

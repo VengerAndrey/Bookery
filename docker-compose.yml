@@ -13,6 +13,7 @@ services:
         - bookery.storage
         - bookery.node
         - bookery.user
+        - rabbitmq
 
   bookery.authentication:
     image: ${DOCKER_REGISTRY-}bookeryauthentication
@@ -29,6 +30,8 @@ services:
       dockerfile: Bookery.Storage/Dockerfile
     ports:
         - "80"
+    depends_on:
+        - rabbitmq
 
   bookery.node:
     image: ${DOCKER_REGISTRY-}bookerynode
@@ -43,6 +46,7 @@ services:
       Password: "8cvMfuAqMvN2yA0rQk7u9hwQNjmXtGnV"
     depends_on:
         - bookery.node.db
+        - rabbitmq
 
   bookery.user:
     image: ${DOCKER_REGISTRY-}bookeryuser
@@ -71,3 +75,13 @@ services:
         SA_PASSWORD: "0bfsKjqWT34ZTIiX0uEsPvNY2sMoJtj9"
         ACCEPT_EULA: "Y"
         MSSQL_PID: "Express"
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    ports:
+      - "4369:4369"
+      - "5671:5671"
+      - "5672:5672"
+      - "25672:25672"
+      - "15671:15671"
+      - "15672:15672"

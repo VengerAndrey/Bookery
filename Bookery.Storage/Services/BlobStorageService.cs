@@ -28,5 +28,13 @@ namespace Bookery.Storage.Services
             }
             return Stream.Null;
         }
+
+        public async Task<bool> Delete(Guid id)
+        {
+            var blobClient = _container.GetBlobClient(id.ToString());
+            var result = await blobClient.DeleteIfExistsAsync();
+            var response = result.GetRawResponse();
+            return response.Status is >= StatusCodes.Status200OK and <= StatusCodes.Status208AlreadyReported;
+        }
     }
 }

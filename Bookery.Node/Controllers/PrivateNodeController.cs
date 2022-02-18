@@ -2,6 +2,7 @@
 using Bookery.Node.Models;
 using Bookery.Node.Services.Common;
 using Bookery.Node.Services.Node;
+using Bookery.Node.Services.Storage;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Bookery.Node.Controllers;
@@ -12,13 +13,15 @@ public class PrivateNodeController : ControllerBase
 {
     private readonly IHeaderService _headerService;
     private readonly INodeService _nodeService;
+    private readonly IStorageProducer _storageProducer;
     private readonly PathBuilder _pathBuilder;
 
     public PrivateNodeController(INodeService nodeService, IHeaderService headerService,
-        IUserNodeService userNodeService)
+        IUserNodeService userNodeService, IStorageProducer storageProducer)
     {
         _nodeService = nodeService;
         _headerService = headerService;
+        _storageProducer = storageProducer;
         _pathBuilder = new PathBuilder();
     }
 
@@ -127,6 +130,11 @@ public class PrivateNodeController : ControllerBase
         await DeleteChildren(nodeResult.LevelTree.Children.FirstOrDefault(x => x.Data.Name == nodeResult.Node.Name));
         await _nodeService.Delete(nodeResult.Node.Id);
 
+        if (!nodeResult.Node.IsDirectory)
+        {
+            _storageProducer.Delete(nodeResult.Node.Id);
+        }
+
         return NoContent();
     }
 
@@ -140,6 +148,10 @@ public class PrivateNodeController : ControllerBase
             }
 
             await _nodeService.Delete(child.Data.Id);
+            if (!child.Data.IsDirectory)
+            {
+                _storageProducer.Delete(child.Data.Id);
+            }
         }
     }
 
