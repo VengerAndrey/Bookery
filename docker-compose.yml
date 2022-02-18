@@ -1,0 +1,73 @@
+version: '3.4'
+
+services:
+  bookery.api:
+    image: ${DOCKER_REGISTRY-}bookeryapi
+    build:
+      context: .
+      dockerfile: Bookery.Api/Dockerfile
+    ports:
+        - "5100:80"
+    depends_on:
+        - bookery.authentication
+        - bookery.storage
+        - bookery.node
+        - bookery.user
+
+  bookery.authentication:
+    image: ${DOCKER_REGISTRY-}bookeryauthentication
+    build:
+      context: .
+      dockerfile: Bookery.Authentication/Dockerfile
+    ports:
+        - "80"
+
+  bookery.storage:
+    image: ${DOCKER_REGISTRY-}bookerystorage
+    build:
+      context: .
+      dockerfile: Bookery.Storage/Dockerfile
+    ports:
+        - "80"
+
+  bookery.node:
+    image: ${DOCKER_REGISTRY-}bookerynode
+    build:
+      context: .
+      dockerfile: Bookery.Node/Dockerfile
+    ports:
+        - "80"
+    environment: 
+      ServerName: "bookery.node.db"
+      Database: "BookeryNode"
+      Password: "8cvMfuAqMvN2yA0rQk7u9hwQNjmXtGnV"
+    depends_on:
+        - bookery.node.db
+
+  bookery.user:
+    image: ${DOCKER_REGISTRY-}bookeryuser
+    build:
+      context: .
+      dockerfile: Bookery.User/Dockerfile
+    ports:
+        - "80"
+    environment: 
+      ServerName: "bookery.user.db"
+      Database: "BookeryUser"
+      Password: "0bfsKjqWT34ZTIiX0uEsPvNY2sMoJtj9"
+    depends_on:
+        - bookery.user.db
+
+  bookery.node.db:
+      image: mcr.microsoft.com/mssql/server:2019-latest
+      environment:
+        SA_PASSWORD: "8cvMfuAqMvN2yA0rQk7u9hwQNjmXtGnV"
+        ACCEPT_EULA: "Y"
+        MSSQL_PID: "Express"
+
+  bookery.user.db:
+      image: mcr.microsoft.com/mssql/server:2019-latest
+      environment:
+        SA_PASSWORD: "0bfsKjqWT34ZTIiX0uEsPvNY2sMoJtj9"
+        ACCEPT_EULA: "Y"
+        MSSQL_PID: "Express"

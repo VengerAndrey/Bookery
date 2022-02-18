@@ -15,9 +15,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bookery.Storage", "Bookery.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bookery.Api", "Bookery.Api\Bookery.Api.csproj", "{365ADC4A-2282-491D-B790-50637426C9CF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bookery.Node", "Bookery.Node\Bookery.Node.csproj", "{E9B67E48-AADB-4202-B8E5-5A6227DC9EFA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bookery.Node", "Bookery.Node\Bookery.Node.csproj", "{E9B67E48-AADB-4202-B8E5-5A6227DC9EFA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bookery.User", "Bookery.User\Bookery.User.csproj", "{E54907FE-2E34-4589-9C1D-AE7043912D52}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bookery.User", "Bookery.User\Bookery.User.csproj", "{E54907FE-2E34-4589-9C1D-AE7043912D52}"
+EndProject
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{C472073F-1959-40E6-ABC1-908A29A804DC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -57,6 +59,10 @@ Global
 		{E54907FE-2E34-4589-9C1D-AE7043912D52}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E54907FE-2E34-4589-9C1D-AE7043912D52}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E54907FE-2E34-4589-9C1D-AE7043912D52}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C472073F-1959-40E6-ABC1-908A29A804DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C472073F-1959-40E6-ABC1-908A29A804DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C472073F-1959-40E6-ABC1-908A29A804DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C472073F-1959-40E6-ABC1-908A29A804DC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

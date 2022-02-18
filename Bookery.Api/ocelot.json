@@ -5,8 +5,8 @@
       "DownstreamPathTemplate": "/api/Authentication/sign-out",
       "DownstreamHostAndPorts": [
         {
-          "Host": "localhost",
-          "Port": 5165
+          "Host": "bookery.authentication",
+          "Port": 80
         }
       ],
       "UpstreamPathTemplate": "/Authentication/sign-out",
@@ -26,8 +26,8 @@
       "DownstreamPathTemplate": "/api/Authentication/{any}",
       "DownstreamHostAndPorts": [
         {
-          "Host": "localhost",
-          "Port": 5165
+          "Host": "bookery.authentication",
+          "Port": 80
         }
       ],
       "UpstreamPathTemplate": "/Authentication/{any}",
@@ -35,13 +35,14 @@
         "POST"
       ]
     },
+
     {
       "DownstreamScheme": "http",
       "DownstreamPathTemplate": "/api/Node/Private{path}",
       "DownstreamHostAndPorts": [
         {
-          "Host": "localhost",
-          "Port": 5129
+          "Host": "bookery.node",
+          "Port": 80
         }
       ],
       "UpstreamPathTemplate": "/Node/Private{path}",
@@ -64,8 +65,8 @@
       "DownstreamPathTemplate": "/api/Node/Shared{path}",
       "DownstreamHostAndPorts": [
         {
-          "Host": "localhost",
-          "Port": 5129
+          "Host": "bookery.node",
+          "Port": 80
         }
       ],
       "UpstreamPathTemplate": "/Node/Shared{path}",
@@ -87,8 +88,8 @@
       "DownstreamPathTemplate": "/api/Node/Sharing{path}",
       "DownstreamHostAndPorts": [
         {
-          "Host": "localhost",
-          "Port": 5129
+          "Host": "bookery.node",
+          "Port": 80
         }
       ],
       "UpstreamPathTemplate": "/Node/Sharing{path}",
@@ -109,8 +110,8 @@
       "DownstreamPathTemplate": "/api/Storage/{id}",
       "DownstreamHostAndPorts": [
         {
-          "Host": "localhost",
-          "Port": 5129
+          "Host": "bookery.node",
+          "Port": 80
         }
       ],
       "UpstreamPathTemplate": "/Storage/{id}",
@@ -131,8 +132,8 @@
       "DownstreamPathTemplate": "/api/SignUp/",
       "DownstreamHostAndPorts": [
         {
-          "Host": "localhost",
-          "Port": 5074
+          "Host": "bookery.user",
+          "Port": 80
         }
       ],
       "UpstreamPathTemplate": "/SignUp/",
@@ -145,8 +146,8 @@
       "DownstreamPathTemplate": "/api/User/{any}",
       "DownstreamHostAndPorts": [
         {
-          "Host": "localhost",
-          "Port": 5074
+          "Host": "bookery.user",
+          "Port": 80
         }
       ],
       "UpstreamPathTemplate": "/User/{any}",
@@ -166,8 +167,8 @@
       "DownstreamPathTemplate": "/api/Photo/",
       "DownstreamHostAndPorts": [
         {
-          "Host": "localhost",
-          "Port": 5074
+          "Host": "bookery.user",
+          "Port": 80
         }
       ],
       "UpstreamPathTemplate": "/Photo/",

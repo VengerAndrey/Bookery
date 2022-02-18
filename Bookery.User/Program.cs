@@ -15,7 +15,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
 builder.Services.AddDbContextFactory<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("LocalDb")));
+{
+    var server = builder.Configuration["ServerName"];
+    var database = builder.Configuration["Database"];
+    var password = builder.Configuration["Password"];
+
+    options.UseSqlServer($"Server={server};Database={database};User=sa;Password={password};");
+});
 
 builder.Services.AddHttpClient("NodeClient",
     config => { config.BaseAddress = new Uri(builder.Configuration["NodeUrl"].TrimEnd('/') + "/"); });
@@ -38,5 +44,16 @@ var app = builder.Build();
 app.UseAuthorization();
 
 app.MapControllers();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+
+    var context = services.GetRequiredService<AppDbContext>();
+    if (context.Database.GetPendingMigrations().Any())
+    {
+        context.Database.Migrate();
+    }
+}
 
 app.Run();
