@@ -93,7 +93,7 @@ public class AuthenticationController : ControllerBase
             return BadRequest();
         }
 
-        _jwtService.ClearRefreshToken(stsUser.RowKey);
+        Task.Run(() => _jwtService.ClearRefreshToken(stsUser.RowKey));
 
         return Ok();
     }
