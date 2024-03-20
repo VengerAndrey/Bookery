@@ -7,7 +7,7 @@ services:
       context: .
       dockerfile: Bookery.Api/Dockerfile
     ports:
-        - "5100:80"
+        - 5100:80
     depends_on:
         - bookery.authentication
         - bookery.storage
@@ -21,7 +21,9 @@ services:
       context: .
       dockerfile: Bookery.Authentication/Dockerfile
     ports:
-        - "80"
+        - 5165:80
+    volumes:
+      - ~/.microsoft/usersecrets/$USER_SECRETS_ID:/root/.microsoft/usersecrets/$USER_SECRETS_ID:ro
 
   bookery.storage:
     image: ${DOCKER_REGISTRY-}bookerystorage
@@ -29,59 +31,67 @@ services:
       context: .
       dockerfile: Bookery.Storage/Dockerfile
     ports:
-        - "80"
+        - 5181:80
+    volumes:
+      - ~/.microsoft/usersecrets/$USER_SECRETS_ID:/root/.microsoft/usersecrets/$USER_SECRETS_ID:ro
     depends_on:
-        - rabbitmq
-
+        rabbitmq:
+          condition: service_healthy
+    
   bookery.node:
     image: ${DOCKER_REGISTRY-}bookerynode
     build:
       context: .
       dockerfile: Bookery.Node/Dockerfile
     ports:
-        - "80"
-    environment: 
-      ServerName: "bookery.node.db"
-      Database: "BookeryNode"
-      Password: "8cvMfuAqMvN2yA0rQk7u9hwQNjmXtGnV"
+        - 5129:80
+    
     depends_on:
-        - bookery.node.db
-        - rabbitmq
-
+      bookery.postgresql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    
   bookery.user:
     image: ${DOCKER_REGISTRY-}bookeryuser
     build:
       context: .
       dockerfile: Bookery.User/Dockerfile
     ports:
-        - "80"
-    environment: 
-      ServerName: "bookery.user.db"
-      Database: "BookeryUser"
-      Password: "0bfsKjqWT34ZTIiX0uEsPvNY2sMoJtj9"
+        - 5074:80
+    volumes:
+      - ~/.microsoft/usersecrets/$USER_SECRETS_ID:/root/.microsoft/usersecrets/$USER_SECRETS_ID:ro
     depends_on:
-        - bookery.user.db
+      bookery.postgresql:
+        condition: service_healthy
+            
 
-  bookery.node.db:
-      image: mcr.microsoft.com/mssql/server:2019-latest
-      environment:
-        SA_PASSWORD: "8cvMfuAqMvN2yA0rQk7u9hwQNjmXtGnV"
-        ACCEPT_EULA: "Y"
-        MSSQL_PID: "Express"
-
-  bookery.user.db:
-      image: mcr.microsoft.com/mssql/server:2019-latest
-      environment:
-        SA_PASSWORD: "0bfsKjqWT34ZTIiX0uEsPvNY2sMoJtj9"
-        ACCEPT_EULA: "Y"
-        MSSQL_PID: "Express"
+  bookery.postgresql:
+    image: postgres:14-alpine
+    ports:
+      - 5433:5432
+    volumes:
+      - ./docker_volumes/postgresql:/var/lib/postgresql/data
+      - ./scripts/initialize_db.sql:/docker-entrypoint-initdb.d/initialize_db.sql:ro
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   rabbitmq:
     image: rabbitmq:3-management-alpine
     ports:
-      - "4369:4369"
-      - "5671:5671"
-      - "5672:5672"
-      - "25672:25672"
-      - "15671:15671"
-      - "15672:15672"
+      - 4369:4369
+      - 5671:5671
+      - 5672:5672
+      - 25672:25672
+      - 15671:15671
+      - 15672:15672
+    volumes:
+      - ./docker_volumes/rabbitmq:/var/lib/rabbitmq/mnesia
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 5s
+      timeout: 5s
+      retries: 5

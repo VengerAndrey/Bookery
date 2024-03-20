@@ -1,22 +1,24 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
-	<PropertyGroup>
-		<TargetFramework>net6.0</TargetFramework>
-		<Nullable>enable</Nullable>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-		<DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
-	</PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+        <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
+        <UserSecretsId>1914ca56-257a-45b3-bb6d-e62c46881d49</UserSecretsId>
+    </PropertyGroup>
 
-	<ItemGroup>
-		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.14.0" />
-		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.10.0" />
-	</ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.14.0"/>
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0"/>
+        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.10.0"/>
+    </ItemGroup>
 
-	<ItemGroup>
-		<ProjectReference Include="..\Bookery.Config\Bookery.Config.csproj" />
-		<ProjectReference Include="..\Bookery.Domain\Bookery.Domain.csproj" />
-		<ProjectReference Include="..\Bookery.Services\Bookery.Services.csproj" />
-	</ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\Bookery.Config\Bookery.Config.csproj"/>
+        <ProjectReference Include="..\Bookery.Domain\Bookery.Domain.csproj"/>
+        <ProjectReference Include="..\Bookery.Services\Bookery.Services.csproj"/>
+    </ItemGroup>
 
 </Project>

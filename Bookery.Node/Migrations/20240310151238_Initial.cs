@@ -13,8 +13,8 @@ namespace Bookery.Node.Migrations
                 name: "AccessTypes",
                 columns: table => new
                 {
-                    AccessTypeId = table.Column<int>(type: "int", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    AccessTypeId = table.Column<int>(type: "integer", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -25,10 +25,10 @@ namespace Bookery.Node.Migrations
                 name: "Users",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    LastName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    FirstName = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Email = table.Column<string>(type: "text", nullable: false),
+                    LastName = table.Column<string>(type: "text", nullable: false),
+                    FirstName = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -39,16 +39,16 @@ namespace Bookery.Node.Migrations
                 name: "Nodes",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    IsDirectory = table.Column<bool>(type: "bit", nullable: false),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    IsDirectory = table.Column<bool>(type: "boolean", nullable: false),
                     Size = table.Column<long>(type: "bigint", nullable: true),
-                    ParentId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    OwnerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ParentId = table.Column<Guid>(type: "uuid", nullable: true),
+                    OwnerId = table.Column<Guid>(type: "uuid", nullable: false),
                     CreationTimestamp = table.Column<long>(type: "bigint", nullable: false),
                     ModificationTimestamp = table.Column<long>(type: "bigint", nullable: false),
-                    CreatedById = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ModifiedById = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    CreatedById = table.Column<Guid>(type: "uuid", nullable: false),
+                    ModifiedById = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -80,9 +80,9 @@ namespace Bookery.Node.Migrations
                 name: "UserNodes",
                 columns: table => new
                 {
-                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    NodeId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    AccessTypeId = table.Column<int>(type: "int", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    NodeId = table.Column<Guid>(type: "uuid", nullable: false),
+                    AccessTypeId = table.Column<int>(type: "integer", nullable: false),
                     Timestamp = table.Column<long>(type: "bigint", nullable: false)
                 },
                 constraints: table =>
@@ -110,12 +110,11 @@ namespace Bookery.Node.Migrations
             migrationBuilder.InsertData(
                 table: "AccessTypes",
                 columns: new[] { "AccessTypeId", "Name" },
-                values: new object[] { 0, "Read" });
-
-            migrationBuilder.InsertData(
-                table: "AccessTypes",
-                columns: new[] { "AccessTypeId", "Name" },
-                values: new object[] { 1, "Write" });
+                values: new object[,]
+                {
+                    { 0, "Read" },
+                    { 1, "Write" }
+                });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Nodes_CreatedById",

@@ -6,18 +6,17 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
 builder.Services.AddControllers(options =>
     options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = false);
 
 builder.Services.AddDbContextFactory<AppDbContext>(options =>
 {
-    var server = builder.Configuration["ServerName"];
-    var database = builder.Configuration["Database"];
-    var password = builder.Configuration["Password"];
+    var server = builder.Configuration["Postgresql:Server"];
+    var database = builder.Configuration["Postgresql:Database"];
+    var username = builder.Configuration["Postgresql:Username"];
+    var password = builder.Configuration["Postgresql:Password"];
 
-    options.UseSqlServer($"Server={server};Database={database};User=sa;Password={password};");
+    options.UseNpgsql($"Host={server}; Database={database}; Username={username}; Password={password};");
 });
 
 builder.Services.AddHttpClient("StorageClient",
@@ -35,9 +34,15 @@ builder.Services.AddSingleton<IStorageProducer, StorageProducer>(_ =>
     new StorageProducer(rabbitMq["Host"], Convert.ToInt32(rabbitMq["Port"]), rabbitMq["Username"],
         rabbitMq["Password"]));
 
+builder.Services.AddSwaggerGen();
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 app.UseRouting();
 

@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Exceptions;
 
 namespace Bookery.Storage.Services
 {
@@ -24,10 +25,25 @@ namespace Bookery.Storage.Services
             };
             
         }
-        public Task StartAsync(CancellationToken cancellationToken)
+        public async Task StartAsync(CancellationToken cancellationToken)
         {
-            _connection = _connectionFactory.CreateConnection();
-            _channel = _connection.CreateModel();
+            var retries = 0;
+            
+            while (retries < 3)
+            {
+                retries++;
+                try
+                {
+                    _connection = _connectionFactory.CreateConnection();
+                    break;
+                }
+                catch (BrokerUnreachableException ex)
+                {
+                    await Task.Delay((int)Math.Pow(2, retries) * 1000, cancellationToken);
+                }
+            }
+
+            _channel = _connection?.CreateModel();
             _channel?.QueueDeclare(queue: "delete_file",
                 durable: false, exclusive: false, autoDelete: false, arguments: null);
 
@@ -38,7 +54,6 @@ namespace Bookery.Storage.Services
                 await DeleteFile(id);
             };
             _channel?.BasicConsume(queue: "delete_file", autoAck: true, consumer: _consumer);
-            return Task.CompletedTask;
         }
 
         public Task StopAsync(CancellationToken cancellationToken)

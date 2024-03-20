@@ -4,33 +4,29 @@ services:
   bookery.api:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-    ports:
-      - "80"
 
   bookery.authentication:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-    ports:
-      - "80"
-
+      - USER_SECRETS_ID=1914ca56-257a-45b3-bb6d-e62c46881d49
 
   bookery.node:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-    ports:
-      - "80"
-
+      - Postgresql__Server=bookery.postgresql
 
   bookery.user:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-    ports:
-      - "80"
-
+      - Postgresql__Server=bookery.postgresql
+      - USER_SECRETS_ID=ba705c1b-d76a-4807-a6f6-8f03a210106c
 
   bookery.storage:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-    ports:
-      - "80"
+      - USER_SECRETS_ID=1caa4cac-8476-4ecc-a533-347eca7c1b98
 
+  bookery.postgresql:
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=1

@@ -5,8 +5,6 @@ using Bookery.Authentication.Services.JWT;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
 builder.Services.AddControllers();
 
 builder.Services.AddSingleton<IStsUserRepository, StsUserRepository>(_ =>
@@ -16,9 +14,15 @@ builder.Services.AddSingleton<IJwtService, JwtService>();
 builder.Services.AddHostedService<ExpiredTokenCleaner>();
 builder.Services.AddSingleton<IHeaderService, HeaderService>();
 
+builder.Services.AddSwaggerGen();
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 app.UseAuthorization();
 
