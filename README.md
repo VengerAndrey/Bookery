@@ -7,7 +7,7 @@ This project contains microservices that handle all app activities. All of them 
 Also, there is a [`Xamarin`](https://github.com/VengerAndrey/BookeryMobile) client app for this project.
 
 <p align="center">
-<img src="https://github.com/VengerAndrey/Bookery/blob/master/images/infrastructure.png">
+<img src="https://github.com/andrii-venher/Bookery/blob/main/images/infrastructure.png">
 </p>
 
 ## Tech stack
