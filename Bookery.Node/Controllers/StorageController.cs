@@ -1,99 +1,89 @@
-﻿using Bookery.Node.Models;
-using Bookery.Node.Services.Common;
-using Bookery.Node.Services.Node;
-using Bookery.Node.Services.Storage;
+﻿using Bookery.Common.Results;
+using Bookery.Node.Exceptions;
+using Bookery.Node.Extensions;
+using Bookery.Node.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Bookery.Node.Controllers;
 
-[Route("api/Storage/{id}")]
+[Route("api/Storage")]
 [ApiController]
 public class StorageController : ControllerBase
 {
-    private readonly IHeaderService _headerService;
-    private readonly INodeService _nodeService;
+    private readonly ILogger<StorageController> _logger;
     private readonly IStorageService _storageService;
-    private readonly IUserNodeService _userNodeService;
 
-    public StorageController(IStorageService storageService, INodeService nodeService, IUserNodeService userNodeService,
-        IHeaderService headerService)
+    public StorageController(ILogger<StorageController> logger, IStorageService storageService)
     {
+        _logger = logger;
         _storageService = storageService;
-        _nodeService = nodeService;
-        _userNodeService = userNodeService;
-        _headerService = headerService;
     }
 
     [HttpPost]
+    [Route("{id}")]
     public async Task<IActionResult> Upload(Guid id, [FromForm] IFormFile file)
     {
-        var user = await _headerService.GetRequestUser(Request);
-        if (user is null)
+        try
         {
-            return StatusCode(StatusCodes.Status401Unauthorized);
-        }
+            var userId = Request.GetRequiredUserId();
 
-        var node = await _nodeService.Get(id);
-        if (node is null)
+            var result = await _storageService.Upload(id, userId, file);
+
+            return result ? new OkResult() : new StatusCodeResult(500);
+
+        }
+        catch (UnauthorizedActionException)
         {
-            return NotFound();
+            return new UnauthorizedResult();
         }
-
-        var userNode = (await _userNodeService.GetAll())
-            .Where(x => x.UserId == user.Id)
-            .FirstOrDefault(x => x.NodeId == id);
-
-        if (node.OwnerId == user.Id || userNode != null && userNode.AccessTypeId == AccessTypeId.Write)
+        catch (NodeDoesNotExistException)
         {
-            node.Size = file.Length;
-            node.ModificationTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-            node.ModifiedById = node.OwnerId == user.Id ? node.OwnerId : userNode.UserId;
-
-            await _nodeService.Update(node);
-
-            var result = await _storageService.Upload(id, file.OpenReadStream());
-
-            if (result)
-            {
-                return Ok();
-            }
-
-            return Problem();
+            return new NotFoundResult();
         }
-
-        return StatusCode(StatusCodes.Status403Forbidden);
+        catch (ForbiddenActionException)
+        {
+            return new ForbiddenApiResult();
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, $"Error occurred during {nameof(StorageController)}.{nameof(Upload)} call.");
+            return new InternalServerErrorApiResult();
+        }
     }
 
     [HttpGet]
+    [Route("{id}")]
     public async Task<IActionResult> Download(Guid id)
     {
-        var user = await _headerService.GetRequestUser(Request);
-        if (user is null)
+        try
         {
-            return StatusCode(StatusCodes.Status401Unauthorized);
-        }
+            var userId = Request.GetRequiredUserId();
 
-        var node = await _nodeService.Get(id);
-        if (node is null)
-        {
-            return NotFound();
-        }
+            var stream = await _storageService.Download(id, userId);
 
-        var userNode = (await _userNodeService.GetAll())
-            .Where(x => x.UserId == user.Id)
-            .FirstOrDefault(x => x.NodeId == id);
-
-        if (node.OwnerId == user.Id || userNode != null)
-        {
-            var stream = await _storageService.Download(id);
-            if (stream == Stream.Null)
+            if (stream == null)
             {
-                return NotFound();
+                return new NotFoundResult();
             }
-
+            
             return File(stream, "application/octet-stream");
         }
-
-        return StatusCode(StatusCodes.Status403Forbidden);
+        catch (UnauthorizedActionException)
+        {
+            return new UnauthorizedResult();
+        }
+        catch (NodeDoesNotExistException)
+        {
+            return new NotFoundResult();
+        }
+        catch (ForbiddenActionException)
+        {
+            return new ForbiddenApiResult();
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, $"Error occurred during {nameof(StorageController)}.{nameof(Download)} call.");
+            return new InternalServerErrorApiResult();
+        }
     }
 }

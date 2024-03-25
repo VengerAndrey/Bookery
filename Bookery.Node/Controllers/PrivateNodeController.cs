@@ -1,8 +1,8 @@
-﻿using Bookery.Node.Common;
-using Bookery.Node.Models;
-using Bookery.Node.Services.Common;
-using Bookery.Node.Services.Node;
-using Bookery.Node.Services.Storage;
+﻿using Bookery.Common.Results;
+using Bookery.Node.Common.DTOs.Input;
+using Bookery.Node.Exceptions;
+using Bookery.Node.Extensions;
+using Bookery.Node.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Bookery.Node.Controllers;
@@ -11,202 +11,128 @@ namespace Bookery.Node.Controllers;
 [Route("api/Node/Private/{*path}")]
 public class PrivateNodeController : ControllerBase
 {
-    private readonly IHeaderService _headerService;
+    private readonly ILogger<PrivateNodeController> _logger;
     private readonly INodeService _nodeService;
-    private readonly IStorageProducer _storageProducer;
-    private readonly PathBuilder _pathBuilder;
 
-    public PrivateNodeController(INodeService nodeService, IHeaderService headerService,
-        IUserNodeService userNodeService, IStorageProducer storageProducer)
+    public PrivateNodeController(ILogger<PrivateNodeController> logger, INodeService nodeService)
     {
+        _logger = logger;
         _nodeService = nodeService;
-        _headerService = headerService;
-        _storageProducer = storageProducer;
-        _pathBuilder = new PathBuilder();
     }
 
     [HttpGet]
     public async Task<IActionResult> Get(string? path)
     {
-        var user = await _headerService.GetRequestUser(Request);
-
-        var nodeResult = await GetPrivateNode(user, path, false);
-
-        if (nodeResult.ActionResult != null)
+        try
         {
-            return nodeResult.ActionResult;
+            var userId = Request.GetUserId();
+
+            if (userId == null)
+            {
+                return new UnauthorizedResult();
+            }
+
+            var nodes = await _nodeService.GetByPath(path, userId.Value);
+
+            return new OkObjectResult(nodes);
         }
-
-        var nodes = nodeResult.LevelTree.Children.Select(x => x.Data).ToList();
-
-        return new JsonResult(nodes);
+        catch (NodeDoesNotExistException)
+        {
+            return new NotFoundResult();
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, $"Error occurred during {nameof(PrivateNodeController)}.{nameof(Get)} call.");
+            return new InternalServerErrorApiResult();
+        }
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create(string? path, [FromBody] Models.Node create)
+    public async Task<IActionResult> Create(string? path, [FromBody] CreateNodeDto createNodeDto)
     {
-        var user = await _headerService.GetRequestUser(Request);
-        var nodeResult = await GetPrivateNode(user, path, false);
-
-        if (nodeResult.ActionResult != null)
+        try
         {
-            return nodeResult.ActionResult;
-        }
+            var userId = Request.GetUserId();
 
-        if (nodeResult.LevelTree.Children.All(x => x.Data.Name != create.Name))
-        {
-            var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-
-            _pathBuilder.ParsePath(path);
-            _pathBuilder.AddNode(create.Name);
-
-            create.OwnerId = user.Id;
-            create.ModifiedById = user.Id;
-            create.CreatedById = user.Id;
-
-            if (!nodeResult.LevelTree.IsRoot)
+            if (userId == null)
             {
-                create.ParentId = nodeResult.LevelTree.Data.Id;
+                return new UnauthorizedResult();
             }
 
-            create.CreationTimestamp = timestamp;
-            create.ModificationTimestamp = timestamp;
+            var (createdNode, createdAtPath) = await _nodeService.Create(path, createNodeDto, userId.Value);
 
-            return Created(_pathBuilder.GetPath(), await _nodeService.Create(create));
+            return Created(createdAtPath, createdNode);
         }
-
-        return Conflict();
+        catch (NodeDoesNotExistException)
+        {
+            return new NotFoundResult();
+        }
+        catch (NodeAlreadyExistsException e)
+        {
+            return new ConflictObjectResult(e.Message);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, $"Error occurred during {nameof(PrivateNodeController)}.{nameof(Create)} call.");
+            return new InternalServerErrorApiResult();
+        }
     }
 
     [HttpPut]
-    public async Task<IActionResult> Update(string? path, [FromBody] Models.Node update)
+    public async Task<IActionResult> Update(string? path, [FromBody] UpdateNodeDto updateNodeDto)
     {
-        var user = await _headerService.GetRequestUser(Request);
-        var nodeResult = await GetPrivateNode(user, path, true);
-
-        if (nodeResult.ActionResult != null)
+        try
         {
-            return nodeResult.ActionResult;
-        }
+            var userId = Request.GetUserId();
 
-        if (nodeResult.LevelTree.Children.Where(x => x.Data.Id != nodeResult.Node.Id)
-            .All(x => x.Data.Name != update.Name))
-        {
-            var entity = await _nodeService.Get(nodeResult.Node.Id);
-
-            if (entity is null)
+            if (userId == null)
             {
-                return NotFound();
+                return new UnauthorizedResult();
             }
+            
+            var (updatedNode, updatedAtPath) = await _nodeService.Update(path, updateNodeDto, userId.Value);
 
-            entity.Name = update.Name?.Length > 0 ? update.Name : entity.Name;
-            entity.Size = (update.Size ?? 0) > 0 ? update.Size : entity.Size;
-            entity.ModificationTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-            entity.ModifiedById = update.ModifiedById == Guid.Empty ? user.Id : update.ModifiedById;
-
-            await _nodeService.Update(entity);
-
-            _pathBuilder.ParsePath(path);
-            _pathBuilder.GetLastNode();
-            _pathBuilder.AddNode(update.Name);
-
-            return Accepted(_pathBuilder.GetPath());
+            return Accepted(updatedAtPath, updatedNode);
         }
-
-        return Conflict();
+        catch (NodeDoesNotExistException)
+        {
+            return new NotFoundResult();
+        }
+        catch (NodeAlreadyExistsException e)
+        {
+            return new ConflictObjectResult(e.Message);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, $"Error occurred during {nameof(PrivateNodeController)}.{nameof(Update)} call.");
+            return new InternalServerErrorApiResult();
+        }
     }
 
     [HttpDelete]
     public async Task<IActionResult> Delete(string? path)
     {
-        var user = await _headerService.GetRequestUser(Request);
-        var nodeResult = await GetPrivateNode(user, path, true);
-
-        if (nodeResult.ActionResult != null)
+        try
         {
-            return nodeResult.ActionResult;
-        }
+            var userId = Request.GetUserId();
 
-        await DeleteChildren(nodeResult.LevelTree.Children.FirstOrDefault(x => x.Data.Name == nodeResult.Node.Name));
-        await _nodeService.Delete(nodeResult.Node.Id);
-
-        if (!nodeResult.Node.IsDirectory)
-        {
-            _storageProducer.Delete(nodeResult.Node.Id);
-        }
-
-        return NoContent();
-    }
-
-    private async Task DeleteChildren(TreeExtensions.ITree<Models.Node> node)
-    {
-        foreach (var child in node.Children)
-        {
-            if (!child.IsLeaf)
+            if (userId == null)
             {
-                await DeleteChildren(child);
+                return new UnauthorizedResult();
             }
 
-            await _nodeService.Delete(child.Data.Id);
-            if (!child.Data.IsDirectory)
-            {
-                _storageProducer.Delete(child.Data.Id);
-            }
+            await _nodeService.Delete(path, userId.Value);
+
+            return new NoContentResult();
         }
-    }
-
-    private async Task<NodeResult> GetPrivateNode(User? user, string? path, bool isPreLevelTree)
-    {
-        var nodeResult = new NodeResult();
-
-        if (user is null)
+        catch (NodeDoesNotExistException)
         {
-            nodeResult.ActionResult = Unauthorized();
-            return nodeResult;
+            return new NotFoundResult();
         }
-
-        var allNodes = (await _nodeService.GetAll()).Where(x => x.OwnerId == user.Id).ToList();
-        var virtualRoot = allNodes.ToTree((parent, child) => child.ParentId == parent.Id);
-
-        _pathBuilder.ParsePath(path);
-
-        if (isPreLevelTree)
+        catch (Exception e)
         {
-            _pathBuilder.GetLastNode();
+            _logger.LogError(e, $"Error occurred during {nameof(PrivateNodeController)}.{nameof(Delete)} call.");
+            return new InternalServerErrorApiResult();
         }
-
-        var levelTree = TreeExtensions.GetLevelTree(virtualRoot, _pathBuilder.GetPath());
-
-        if (levelTree is null)
-        {
-            nodeResult.ActionResult = NotFound();
-            return nodeResult;
-        }
-
-        nodeResult.LevelTree = levelTree;
-
-        if (!isPreLevelTree)
-        {
-            return nodeResult;
-        }
-
-        var node = levelTree.Children.FirstOrDefault(x => x.Data.Name == _pathBuilder.GetLastNode(path));
-
-        if (node is null)
-        {
-            nodeResult.ActionResult = NotFound();
-            return nodeResult;
-        }
-
-        nodeResult.Node = node.Data;
-
-        return nodeResult;
-    }
-
-    private class NodeResult
-    {
-        public IActionResult? ActionResult { get; set; }
-        public TreeExtensions.ITree<Models.Node> LevelTree { get; set; }
-        public Models.Node? Node { get; set; }
     }
 }

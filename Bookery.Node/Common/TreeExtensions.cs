@@ -1,8 +1,9 @@
-﻿namespace Bookery.Node.Common;
+﻿using Bookery.Node.Data.Entities;
+
+namespace Bookery.Node.Common;
 
 public static class TreeExtensions
 {
-    /// <summary> Flatten tree to plain list of nodes </summary>
     public static IEnumerable<TNode> Flatten<TNode>(this IEnumerable<TNode> nodes,
         Func<TNode, IEnumerable<TNode>> childrenSelector)
     {
@@ -14,10 +15,6 @@ public static class TreeExtensions
         return nodes.SelectMany(c => childrenSelector(c).Flatten(childrenSelector)).Concat(nodes);
     }
 
-    /// <summary> Converts given list to tree. </summary>
-    /// <typeparam name="T">Custom data type to associate with tree node.</typeparam>
-    /// <param name="items">The collection items.</param>
-    /// <param name="parentSelector">Expression to select parent.</param>
     public static ITree<T> ToTree<T>(this IList<T> items, Func<T, T, bool> parentSelector)
     {
         if (items == null)
@@ -45,7 +42,7 @@ public static class TreeExtensions
         }
     }
 
-    public static ITree<Models.Node> Find(ITree<Models.Node> tree, Models.Node data)
+    public static ITree<NodeEntity> Find(ITree<NodeEntity> tree, NodeEntity data)
     {
         if (tree is null || data is null)
         {
@@ -69,7 +66,7 @@ public static class TreeExtensions
         return null;
     }
 
-    public static ITree<Models.Node>? GetLevelTree(ITree<Models.Node> virtualRoot, string? path,
+    public static ITree<NodeEntity>? GetLevelTree(ITree<NodeEntity> virtualRoot, string? path,
         bool differentRoots = false)
     {
         if (string.IsNullOrEmpty(path))
@@ -116,8 +113,6 @@ public static class TreeExtensions
         return temp;
     }
 
-    /// <summary> Generic interface for tree node structure </summary>
-    /// <typeparam name="T"></typeparam>
     public interface ITree<T>
     {
         T Data { get; }
@@ -128,8 +123,6 @@ public static class TreeExtensions
         int Level { get; }
     }
 
-    /// <summary> Internal implementation of <see cref="ITree{T}" /></summary>
-    /// <typeparam name="T">Custom data type to associate with tree node.</typeparam>
     internal class Tree<T> : ITree<T>
     {
         private Tree(T data)

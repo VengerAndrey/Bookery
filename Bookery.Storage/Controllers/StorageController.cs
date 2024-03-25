@@ -1,16 +1,19 @@
-﻿using Bookery.Storage.Services;
+﻿using Bookery.Common.Results;
+using Bookery.Storage.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Bookery.Storage.Controllers;
 
-[Route("api/[controller]")]
+[Route("api/Storage")]
 [ApiController]
 public class StorageController : ControllerBase
 {
+    private readonly ILogger<StorageController> _logger;
     private readonly IStorageService _storageService;
 
-    public StorageController(IStorageService storageService)
+    public StorageController(ILogger<StorageController> logger, IStorageService storageService)
     {
+        _logger = logger;
         _storageService = storageService;
     }
 
@@ -18,27 +21,43 @@ public class StorageController : ControllerBase
     [Route("{id}")]
     public async Task<IActionResult> Upload(Guid id, [FromForm] IFormFile file)
     {
-        var result = await _storageService.Upload(id, file.OpenReadStream());
-
-        if (result)
+        try
         {
-            return Ok();
-        }
+            var result = await _storageService.Upload(id, file.OpenReadStream());
 
-        return Problem();
+            if (result)
+            {
+                return new OkResult();
+            }
+
+            return new InternalServerErrorApiResult();
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, $"Error occurred during {nameof(StorageController)}.{nameof(Upload)} call.");
+            return new InternalServerErrorApiResult();
+        }
     }
 
     [HttpGet]
     [Route("{id}")]
     public async Task<IActionResult> Download(Guid id)
     {
-        var stream = await _storageService.Download(id);
-
-        if (stream == Stream.Null)
+        try
         {
-            return NotFound();
-        }
+            var stream = await _storageService.Download(id);
 
-        return File(stream, "application/octet-stream");
+            if (stream == null)
+            {
+                return new NotFoundResult();
+            }
+
+            return File(stream, "application/octet-stream");
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, $"Error occurred during {nameof(StorageController)}.{nameof(Download)} call.");
+            return new InternalServerErrorApiResult();
+        }
     }
 }

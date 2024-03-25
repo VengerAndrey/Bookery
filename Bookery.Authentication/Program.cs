@@ -1,18 +1,12 @@
-using Bookery.Authentication.Repositories.User;
-using Bookery.Authentication.Services.Common;
-using Bookery.Authentication.Services.Hash;
-using Bookery.Authentication.Services.JWT;
+using Bookery.Authentication.Data;
+using Bookery.Authentication.Extensions;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
-builder.Services.AddSingleton<IStsUserRepository, StsUserRepository>(_ =>
-    new StsUserRepository(builder.Configuration.GetConnectionString("StorageAccount")));
-builder.Services.AddSingleton<IHasher, Hasher>(_ => new Hasher(builder.Configuration["Salt"]));
-builder.Services.AddSingleton<IJwtService, JwtService>();
-builder.Services.AddHostedService<ExpiredTokenCleaner>();
-builder.Services.AddSingleton<IHeaderService, HeaderService>();
+builder.Services.AddServices(builder.Configuration);
 
 builder.Services.AddSwaggerGen();
 
@@ -24,8 +18,21 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseAuthentication();
+
 app.UseAuthorization();
 
 app.MapControllers();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+
+    var context = services.GetRequiredService<AppDbContext>();
+    if (context.Database.GetPendingMigrations().Any())
+    {
+        context.Database.Migrate();
+    }
+}
 
 app.Run();

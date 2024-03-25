@@ -1,86 +1,119 @@
-﻿using Bookery.User.Models;
-using Bookery.User.Services.Common;
-using Bookery.User.Services.User;
+﻿using Bookery.Common.Results;
+using Bookery.User.Common.DTOs.Input;
+using Bookery.User.Extensions;
+using Bookery.User.Services.Interfaces;
+using Bookery.User.Validators;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Bookery.User.Controllers;
 
-[Route("api/[controller]")]
+[Route("api/User")]
 [ApiController]
 public class UserController : ControllerBase
 {
-    private readonly IHeaderService _headerService;
+    private readonly ILogger<UserController> _logger;
     private readonly IUserService _userService;
 
-    public UserController(IUserService userService, IHeaderService headerService)
+    public UserController(ILogger<UserController> logger, IUserService userService)
     {
+        _logger = logger;
         _userService = userService;
-        _headerService = headerService;
+    }
+
+    [HttpPost]
+    [Route("SignUp")]
+    public async Task<IActionResult> SignUp([FromBody] UserSignUpDto userSignUpDto)
+    {
+        try
+        {
+            var existingUser = await _userService.GetByEmail(userSignUpDto.Email);
+
+            if (existingUser != null)
+            {
+                return new ConflictResult();
+            }
+        
+            if (!EmailValidator.Validate(userSignUpDto.Email))
+            {
+                return new BadRequestResult();
+            }
+
+            var createdUser = await _userService.SignUp(userSignUpDto);
+
+            return new OkObjectResult(createdUser);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, $"Error occurred during {nameof(UserController)}.{nameof(SignUp)} call.");
+            return new InternalServerErrorApiResult();
+        }
     }
 
     [HttpGet]
-    [Route("self")]
+    [Route("Self")]
     public async Task<IActionResult> Get()
     {
-        var user = await _headerService.GetRequestUser(Request);
-
-        if (user is null)
+        try
         {
-            return NotFound();
+            var userId = Request.GetUserId();
+
+            if (userId == null)
+            {
+                return new NotFoundResult();
+            }
+
+            var user = await _userService.Get(userId.Value);
+
+            return new OkObjectResult(user);
         }
-
-        var userWithoutPassword = new UserWithoutPassword
+        catch (Exception e)
         {
-            Id = user.Id,
-            Email = user.Email,
-            FirstName = user.FirstName,
-            LastName = user.LastName
-        };
-
-        return new JsonResult(userWithoutPassword);
+            _logger.LogError(e, $"Error occurred during {nameof(UserController)}.{nameof(Get)} call.");
+            return new InternalServerErrorApiResult();
+        }
     }
 
     [HttpGet]
-    [Route("email/{email}")]
+    [Route("ByEmail/{email}")]
     public async Task<IActionResult> GetByEmail(string email)
     {
-        var user = await _userService.GetByEmail(email);
-
-        if (user is null)
+        try
         {
-            return NotFound();
+            var user = await _userService.GetByEmail(email);
+
+            if (user == null)
+            {
+                return new NotFoundResult();
+            }
+
+            return new OkObjectResult(user);
         }
-
-        var userWithoutPassword = new UserWithoutPassword
+        catch (Exception e)
         {
-            Id = user.Id,
-            Email = user.Email,
-            FirstName = user.FirstName,
-            LastName = user.LastName
-        };
-
-        return new JsonResult(userWithoutPassword);
+            _logger.LogError(e, $"Error occurred during {nameof(UserController)}.{nameof(GetByEmail)} call.");
+            return new InternalServerErrorApiResult();
+        }
     }
 
     [HttpGet]
-    [Route("id/{id}")]
+    [Route("ById/{id}")]
     public async Task<IActionResult> GetById(Guid id)
     {
-        var user = await _userService.Get(id);
-
-        if (user is null)
+        try
         {
-            return NotFound();
+            var user = await _userService.Get(id);
+
+            if (user == null)
+            {
+                return new NotFoundResult();
+            }
+
+            return new OkObjectResult(user);
         }
-
-        var userWithoutPassword = new UserWithoutPassword
+        catch (Exception e)
         {
-            Id = user.Id,
-            Email = user.Email,
-            FirstName = user.FirstName,
-            LastName = user.LastName
-        };
-
-        return new JsonResult(userWithoutPassword);
+            _logger.LogError(e, $"Error occurred during {nameof(UserController)}.{nameof(GetById)} call.");
+            return new InternalServerErrorApiResult();
+        }
     }
 }

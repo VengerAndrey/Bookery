@@ -1,13 +1,15 @@
 version: '3.4'
 
 services:
-  bookery.api:
-    image: ${DOCKER_REGISTRY-}bookeryapi
+  bookery.gateway:
+    image: ${DOCKER_REGISTRY-}bookery-gateway
     build:
       context: .
-      dockerfile: Bookery.Api/Dockerfile
+      dockerfile: Bookery.Gateway/Dockerfile
     ports:
         - 5100:80
+    volumes:
+      - ~/.microsoft/usersecrets/$USER_SECRETS_ID:/root/.microsoft/usersecrets/$USER_SECRETS_ID:ro
     depends_on:
         - bookery.authentication
         - bookery.storage
@@ -16,7 +18,7 @@ services:
         - rabbitmq
 
   bookery.authentication:
-    image: ${DOCKER_REGISTRY-}bookeryauthentication
+    image: ${DOCKER_REGISTRY-}bookery-authentication
     build:
       context: .
       dockerfile: Bookery.Authentication/Dockerfile
@@ -24,9 +26,12 @@ services:
         - 5165:80
     volumes:
       - ~/.microsoft/usersecrets/$USER_SECRETS_ID:/root/.microsoft/usersecrets/$USER_SECRETS_ID:ro
+    depends_on:
+      bookery.postgresql:
+        condition: service_healthy
 
   bookery.storage:
-    image: ${DOCKER_REGISTRY-}bookerystorage
+    image: ${DOCKER_REGISTRY-}bookery-storage
     build:
       context: .
       dockerfile: Bookery.Storage/Dockerfile
@@ -39,13 +44,14 @@ services:
           condition: service_healthy
     
   bookery.node:
-    image: ${DOCKER_REGISTRY-}bookerynode
+    image: ${DOCKER_REGISTRY-}bookery-node
     build:
       context: .
       dockerfile: Bookery.Node/Dockerfile
     ports:
         - 5129:80
-    
+    volumes:
+      - ~/.microsoft/usersecrets/$USER_SECRETS_ID:/root/.microsoft/usersecrets/$USER_SECRETS_ID:ro
     depends_on:
       bookery.postgresql:
         condition: service_healthy
@@ -53,7 +59,7 @@ services:
         condition: service_healthy
     
   bookery.user:
-    image: ${DOCKER_REGISTRY-}bookeryuser
+    image: ${DOCKER_REGISTRY-}bookery-user
     build:
       context: .
       dockerfile: Bookery.User/Dockerfile
@@ -71,7 +77,7 @@ services:
     ports:
       - 5433:5432
     volumes:
-      - ./docker_volumes/postgresql:/var/lib/postgresql/data
+      - ./volumes/postgresql:/var/lib/postgresql/data
       - ./scripts/initialize_db.sql:/docker-entrypoint-initdb.d/initialize_db.sql:ro
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready" ]
@@ -89,7 +95,7 @@ services:
       - 15671:15671
       - 15672:15672
     volumes:
-      - ./docker_volumes/rabbitmq:/var/lib/rabbitmq/mnesia
+      - ./volumes/rabbitmq:/var/lib/rabbitmq/mnesia
     healthcheck:
       test: rabbitmq-diagnostics -q ping
       interval: 5s

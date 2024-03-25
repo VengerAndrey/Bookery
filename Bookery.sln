@@ -3,23 +3,27 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.1.32210.238
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bookery.Domain", "Bookery.Domain\Bookery.Domain.csproj", "{300C0712-34DA-423C-8458-CFEF9433013B}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bookery.Services", "Bookery.Services\Bookery.Services.csproj", "{74EE1BD9-9592-465B-B3CD-542016EA4E4B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bookery.Common", "Bookery.Common\Bookery.Common.csproj", "{300C0712-34DA-423C-8458-CFEF9433013B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bookery.Authentication", "Bookery.Authentication\Bookery.Authentication.csproj", "{A89F780F-8F99-464C-A2C6-D7DC057A40CA}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bookery.Config", "Bookery.Config\Bookery.Config.csproj", "{9701B927-8FC0-4F19-A564-53F1F6E87794}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bookery.Storage", "Bookery.Storage\Bookery.Storage.csproj", "{7DFA5271-7877-41E8-95DC-01A748D2BFC9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bookery.Api", "Bookery.Api\Bookery.Api.csproj", "{365ADC4A-2282-491D-B790-50637426C9CF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bookery.Gateway", "Bookery.Gateway\Bookery.Gateway.csproj", "{365ADC4A-2282-491D-B790-50637426C9CF}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bookery.Node", "Bookery.Node\Bookery.Node.csproj", "{E9B67E48-AADB-4202-B8E5-5A6227DC9EFA}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bookery.User", "Bookery.User\Bookery.User.csproj", "{E54907FE-2E34-4589-9C1D-AE7043912D52}"
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{C472073F-1959-40E6-ABC1-908A29A804DC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bookery.Authentication.Common", "Bookery.Authentication.Common\Bookery.Authentication.Common.csproj", "{A7909884-C869-46C0-BB6A-FBC945C6E498}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bookery.Node.Common", "Bookery.Node.Common\Bookery.Node.Common.csproj", "{E8F98C2B-E982-448C-852A-E84095F33AD2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bookery.User.Common", "Bookery.User.Common\Bookery.User.Common.csproj", "{C3E926ED-5694-4E1A-8C51-08B827DB3914}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bookery.Storage.Common", "Bookery.Storage.Common\Bookery.Storage.Common.csproj", "{3E13339C-C80D-46F5-BBC4-6699FD827B03}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -31,18 +35,10 @@ Global
 		{300C0712-34DA-423C-8458-CFEF9433013B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{300C0712-34DA-423C-8458-CFEF9433013B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{300C0712-34DA-423C-8458-CFEF9433013B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{74EE1BD9-9592-465B-B3CD-542016EA4E4B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{74EE1BD9-9592-465B-B3CD-542016EA4E4B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{74EE1BD9-9592-465B-B3CD-542016EA4E4B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{74EE1BD9-9592-465B-B3CD-542016EA4E4B}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A89F780F-8F99-464C-A2C6-D7DC057A40CA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A89F780F-8F99-464C-A2C6-D7DC057A40CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A89F780F-8F99-464C-A2C6-D7DC057A40CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A89F780F-8F99-464C-A2C6-D7DC057A40CA}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9701B927-8FC0-4F19-A564-53F1F6E87794}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9701B927-8FC0-4F19-A564-53F1F6E87794}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9701B927-8FC0-4F19-A564-53F1F6E87794}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9701B927-8FC0-4F19-A564-53F1F6E87794}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7DFA5271-7877-41E8-95DC-01A748D2BFC9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7DFA5271-7877-41E8-95DC-01A748D2BFC9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7DFA5271-7877-41E8-95DC-01A748D2BFC9}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -63,6 +59,22 @@ Global
 		{C472073F-1959-40E6-ABC1-908A29A804DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C472073F-1959-40E6-ABC1-908A29A804DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C472073F-1959-40E6-ABC1-908A29A804DC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A7909884-C869-46C0-BB6A-FBC945C6E498}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A7909884-C869-46C0-BB6A-FBC945C6E498}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A7909884-C869-46C0-BB6A-FBC945C6E498}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A7909884-C869-46C0-BB6A-FBC945C6E498}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E8F98C2B-E982-448C-852A-E84095F33AD2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E8F98C2B-E982-448C-852A-E84095F33AD2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E8F98C2B-E982-448C-852A-E84095F33AD2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E8F98C2B-E982-448C-852A-E84095F33AD2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C3E926ED-5694-4E1A-8C51-08B827DB3914}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C3E926ED-5694-4E1A-8C51-08B827DB3914}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C3E926ED-5694-4E1A-8C51-08B827DB3914}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C3E926ED-5694-4E1A-8C51-08B827DB3914}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3E13339C-C80D-46F5-BBC4-6699FD827B03}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3E13339C-C80D-46F5-BBC4-6699FD827B03}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3E13339C-C80D-46F5-BBC4-6699FD827B03}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3E13339C-C80D-46F5-BBC4-6699FD827B03}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

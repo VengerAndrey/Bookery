@@ -22,7 +22,7 @@ namespace Bookery.Node.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Bookery.Node.Models.AccessType", b =>
+            modelBuilder.Entity("Bookery.Node.Data.Entities.AccessTypeEntity", b =>
                 {
                     b.Property<int>("AccessTypeId")
                         .HasColumnType("integer");
@@ -48,22 +48,22 @@ namespace Bookery.Node.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Bookery.Node.Models.Node", b =>
+            modelBuilder.Entity("Bookery.Node.Data.Entities.NodeEntity", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<long>("CreatedAt")
+                        .HasColumnType("bigint");
+
                     b.Property<Guid>("CreatedById")
                         .HasColumnType("uuid");
-
-                    b.Property<long>("CreationTimestamp")
-                        .HasColumnType("bigint");
 
                     b.Property<bool>("IsDirectory")
                         .HasColumnType("boolean");
 
-                    b.Property<long>("ModificationTimestamp")
+                    b.Property<long>("ModifiedAt")
                         .HasColumnType("bigint");
 
                     b.Property<Guid>("ModifiedById")
@@ -95,7 +95,7 @@ namespace Bookery.Node.Migrations
                     b.ToTable("Nodes");
                 });
 
-            modelBuilder.Entity("Bookery.Node.Models.User", b =>
+            modelBuilder.Entity("Bookery.Node.Data.Entities.UserEntity", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -118,7 +118,7 @@ namespace Bookery.Node.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("Bookery.Node.Models.UserNode", b =>
+            modelBuilder.Entity("Bookery.Node.Data.Entities.UserNodeEntity", b =>
                 {
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
@@ -129,7 +129,7 @@ namespace Bookery.Node.Migrations
                     b.Property<int>("AccessTypeId")
                         .HasColumnType("integer");
 
-                    b.Property<long>("Timestamp")
+                    b.Property<long>("SharedAt")
                         .HasColumnType("bigint");
 
                     b.HasKey("UserId", "NodeId");
@@ -141,27 +141,27 @@ namespace Bookery.Node.Migrations
                     b.ToTable("UserNodes");
                 });
 
-            modelBuilder.Entity("Bookery.Node.Models.Node", b =>
+            modelBuilder.Entity("Bookery.Node.Data.Entities.NodeEntity", b =>
                 {
-                    b.HasOne("Bookery.Node.Models.User", "CreatedBy")
+                    b.HasOne("Bookery.Node.Data.Entities.UserEntity", "CreatedBy")
                         .WithMany("CreatedNodes")
                         .HasForeignKey("CreatedById")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("Bookery.Node.Models.User", "ModifiedBy")
+                    b.HasOne("Bookery.Node.Data.Entities.UserEntity", "ModifiedBy")
                         .WithMany("ModifiedNodes")
                         .HasForeignKey("ModifiedById")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("Bookery.Node.Models.User", "Owner")
+                    b.HasOne("Bookery.Node.Data.Entities.UserEntity", "Owner")
                         .WithMany("OwnedNodes")
                         .HasForeignKey("OwnerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Bookery.Node.Models.Node", "Parent")
+                    b.HasOne("Bookery.Node.Data.Entities.NodeEntity", "Parent")
                         .WithMany("Children")
                         .HasForeignKey("ParentId")
                         .OnDelete(DeleteBehavior.NoAction);
@@ -175,21 +175,21 @@ namespace Bookery.Node.Migrations
                     b.Navigation("Parent");
                 });
 
-            modelBuilder.Entity("Bookery.Node.Models.UserNode", b =>
+            modelBuilder.Entity("Bookery.Node.Data.Entities.UserNodeEntity", b =>
                 {
-                    b.HasOne("Bookery.Node.Models.AccessType", "AccessType")
+                    b.HasOne("Bookery.Node.Data.Entities.AccessTypeEntity", "AccessType")
                         .WithMany()
                         .HasForeignKey("AccessTypeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Bookery.Node.Models.Node", "Node")
+                    b.HasOne("Bookery.Node.Data.Entities.NodeEntity", "Node")
                         .WithMany("UserNodes")
                         .HasForeignKey("NodeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Bookery.Node.Models.User", "User")
+                    b.HasOne("Bookery.Node.Data.Entities.UserEntity", "User")
                         .WithMany("UserNodes")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.NoAction)
@@ -202,14 +202,14 @@ namespace Bookery.Node.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Bookery.Node.Models.Node", b =>
+            modelBuilder.Entity("Bookery.Node.Data.Entities.NodeEntity", b =>
                 {
                     b.Navigation("Children");
 
                     b.Navigation("UserNodes");
                 });
 
-            modelBuilder.Entity("Bookery.Node.Models.User", b =>
+            modelBuilder.Entity("Bookery.Node.Data.Entities.UserEntity", b =>
                 {
                     b.Navigation("CreatedNodes");
 

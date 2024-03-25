@@ -2,3 +2,4 @@
 
 CREATE DATABASE "Bookery.Node";
 CREATE DATABASE "Bookery.User";
+CREATE DATABASE "Bookery.Authentication";

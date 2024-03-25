@@ -1,14 +1,15 @@
-﻿using Bookery.Node.Models;
+﻿using Bookery.Node.Common.Enums;
+using Bookery.Node.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Bookery.Node.Data;
 
 public class AppDbContext : DbContext
 {
-    public DbSet<Models.Node> Nodes { get; set; }
-    public DbSet<User> Users { get; set; }
-    public DbSet<UserNode> UserNodes { get; set; }
-    public DbSet<AccessType> AccessTypes { get; set; }
+    public DbSet<NodeEntity> Nodes => Set<NodeEntity>();
+    public DbSet<UserEntity> Users => Set<UserEntity>();
+    public DbSet<UserNodeEntity> UserNodes => Set<UserNodeEntity>();
+    public DbSet<AccessTypeEntity> AccessTypes => Set<AccessTypeEntity>();
 
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
@@ -16,96 +17,123 @@ public class AppDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        ConfigureNodeEntity(modelBuilder);
+        ConfigureUserEntity(modelBuilder);
+        ConfigureUserNodeEntity(modelBuilder);
+        ConfigureAccessTypeEntity(modelBuilder);
+
+        base.OnModelCreating(modelBuilder);
+    }
+
+    private void ConfigureNodeEntity(ModelBuilder modelBuilder)
+    {
         modelBuilder
-            .Entity<Models.Node>()
+            .Entity<NodeEntity>()
             .HasKey(x => x.Id);
         modelBuilder
-            .Entity<Models.Node>()
-            .Property(x => x.ParentId).IsRequired(false);
+            .Entity<NodeEntity>()
+            .Property(x => x.ParentId)
+            .IsRequired(false);
         modelBuilder
-            .Entity<Models.Node>()
-            .Property(x => x.Name).IsRequired();
+            .Entity<NodeEntity>()
+            .Property(x => x.Name)
+            .IsRequired();
         modelBuilder
-            .Entity<Models.Node>()
-            .Property(x => x.IsDirectory).IsRequired();
+            .Entity<NodeEntity>()
+            .Property(x => x.IsDirectory)
+            .IsRequired();
         modelBuilder
-            .Entity<Models.Node>()
-            .Property(x => x.Size);
+            .Entity<NodeEntity>()
+            .Property(x => x.Size)
+            .IsRequired(false);
         modelBuilder
-            .Entity<Models.Node>()
+            .Entity<NodeEntity>()
             .HasOne(x => x.Parent)
             .WithMany(x => x.Children)
             .HasForeignKey(x => x.ParentId)
             .OnDelete(DeleteBehavior.NoAction);
         modelBuilder
-            .Entity<Models.Node>()
+            .Entity<NodeEntity>()
             .HasOne(x => x.Owner)
             .WithMany(x => x.OwnedNodes)
             .HasForeignKey(x => x.OwnerId)
             .IsRequired()
             .OnDelete(DeleteBehavior.Cascade);
         modelBuilder
-            .Entity<Models.Node>()
+            .Entity<NodeEntity>()
             .HasOne(x => x.ModifiedBy)
             .WithMany(x => x.ModifiedNodes)
             .HasForeignKey(x => x.ModifiedById)
             .IsRequired()
             .OnDelete(DeleteBehavior.NoAction);
         modelBuilder
-            .Entity<Models.Node>()
+            .Entity<NodeEntity>()
             .HasOne(x => x.CreatedBy)
             .WithMany(x => x.CreatedNodes)
             .HasForeignKey(x => x.CreatedById)
             .IsRequired()
             .OnDelete(DeleteBehavior.NoAction);
+    }
 
+    private void ConfigureUserEntity(ModelBuilder modelBuilder)
+    {
         modelBuilder
-            .Entity<User>()
+            .Entity<UserEntity>()
             .HasKey(x => x.Id);
         modelBuilder
-            .Entity<User>()
-            .Property(x => x.Email).IsRequired();
+            .Entity<UserEntity>()
+            .Property(x => x.Email)
+            .IsRequired();
         modelBuilder
-            .Entity<User>()
-            .Property(x => x.LastName).IsRequired();
+            .Entity<UserEntity>()
+            .Property(x => x.FirstName)
+            .IsRequired();
         modelBuilder
-            .Entity<User>()
-            .Property(x => x.FirstName).IsRequired();
+            .Entity<UserEntity>()
+            .Property(x => x.LastName)
+            .IsRequired();
+    }
 
+    private void ConfigureUserNodeEntity(ModelBuilder modelBuilder)
+    {
         modelBuilder
-            .Entity<UserNode>()
+            .Entity<UserNodeEntity>()
             .HasKey(x => new { x.UserId, x.NodeId });
         modelBuilder
-            .Entity<UserNode>()
+            .Entity<UserNodeEntity>()
             .HasOne(x => x.User)
             .WithMany(x => x.UserNodes)
             .IsRequired()
             .OnDelete(DeleteBehavior.NoAction);
         modelBuilder
-            .Entity<UserNode>()
+            .Entity<UserNodeEntity>()
             .Property(x => x.AccessTypeId)
             .HasConversion<int>()
             .IsRequired();
+    }
 
+    private void ConfigureAccessTypeEntity(ModelBuilder modelBuilder)
+    {
         modelBuilder
-            .Entity<AccessType>()
+            .Entity<AccessTypeEntity>()
+            .HasKey(x => x.AccessTypeId);
+        modelBuilder
+            .Entity<AccessTypeEntity>()
             .Property(x => x.AccessTypeId)
             .HasConversion<int>()
             .IsRequired();
         modelBuilder
-            .Entity<AccessType>()
+            .Entity<AccessTypeEntity>()
             .Property(x => x.Name)
             .IsRequired();
         modelBuilder
-            .Entity<AccessType>()
+            .Entity<AccessTypeEntity>()
             .HasData(Enum.GetValues(typeof(AccessTypeId))
                 .Cast<AccessTypeId>()
-                .Select(x => new AccessType
+                .Select(x => new AccessTypeEntity
                 {
                     AccessTypeId = x,
                     Name = x.ToString()
                 }));
-
-        base.OnModelCreating(modelBuilder);
     }
 }

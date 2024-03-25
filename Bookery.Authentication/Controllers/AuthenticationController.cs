@@ -1,123 +1,107 @@
 ﻿using System.Security.Claims;
-using Bookery.Authentication.Repositories.User;
-using Bookery.Authentication.Services.Common;
-using Bookery.Authentication.Services.Hash;
-using Bookery.Authentication.Services.JWT;
-using Bookery.Domain.DTOs.Requests;
+using Bookery.Authentication.Common.DTOs.Input;
+using Bookery.Authentication.Data.ValueObjects;
+using Bookery.Authentication.Services.Interfaces;
+using Bookery.Common.Results;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Net.Http.Headers;
 
 namespace Bookery.Authentication.Controllers;
 
-[Route("api/[controller]")]
+[Route("api/Authentication")]
 [ApiController]
 public class AuthenticationController : ControllerBase
 {
+    private readonly ILogger<AuthenticationController> _logger;
     private readonly IHasher _hasher;
-    private readonly IHeaderService _headerService;
     private readonly IJwtService _jwtService;
-    private readonly IStsUserRepository _stsUserRepository;
+    private readonly IUserService _userService;
 
-    public AuthenticationController(IJwtService jwtService, IStsUserRepository stsUserRepository, IHasher hasher,
-        IHeaderService headerService)
+    public AuthenticationController(ILogger<AuthenticationController> logger, IUserService userService, IJwtService jwtService, IHasher hasher)
     {
+        _logger = logger;
+        _userService = userService;
         _jwtService = jwtService;
-        _stsUserRepository = stsUserRepository;
         _hasher = hasher;
-        _headerService = headerService;
     }
 
     [HttpPost]
-    [Route("token")]
-    public async Task<IActionResult> Token([FromBody] AuthenticationRequest authenticationRequest)
+    [Route("Token")]
+    public async Task<IActionResult> GetToken([FromBody] GetTokenDto getTokenDto)
     {
-        var identity = await GetIdentity(authenticationRequest);
-
-        if (identity is null)
+        try
         {
-            return Unauthorized("Invalid username or password.");
+            var user = await _userService.GetByEmail(getTokenDto.Email);
+
+            var hashedPassword = _hasher.Hash(getTokenDto.Password);
+
+            if (user == null || user.Password != hashedPassword)
+            {
+                return new UnauthorizedObjectResult("Invalid email or password.");
+            }
+
+            var tokenDto = _jwtService.Authenticate(new UserClaimsValueObject(user.Id, user.Email));
+
+            return Ok(tokenDto);
         }
-
-        var user = await _stsUserRepository.GetByEmail(authenticationRequest.Email);
-
-        if (user is null)
+        catch (Exception e)
         {
-            return Unauthorized("Invalid username or password.");
+            _logger.LogError(e, $"Error occurred during AuthenticationController.{nameof(GetToken)} call.");
+            return new InternalServerErrorApiResult();
         }
-
-        var claims = new[]
-        {
-            new Claim("UserId", user.Id.ToString()),
-            new Claim("Email", user.RowKey)
-        };
-
-        var response = _jwtService.Authenticate(authenticationRequest.Email, claims, DateTime.UtcNow);
-
-        return Ok(response);
     }
 
     [HttpPost]
-    [Route("refresh-token")]
-    public IActionResult RefreshToken([FromBody] RefreshTokenRequest refreshRequest)
+    [Route("Token/Refresh")]
+    [Authorize]
+    public IActionResult RefreshToken([FromBody] RefreshTokenDto refreshDto)
     {
-        var authorizationHeader = Request.Headers[HeaderNames.Authorization];
-        if (authorizationHeader.Count == 0)
+        try
         {
-            return Unauthorized("Invalid token.");
-        }
+            var principal = Request.HttpContext.User;
 
-        var bearer = authorizationHeader[0];
-        if (!bearer.Contains("Bearer "))
+            var userIdString = principal.FindFirstValue("UserId");
+            if (!Guid.TryParse(userIdString, out var userId))
+            {
+                return new UnauthorizedResult();
+            }
+        
+            var email = principal.FindFirstValue("Email");
+            
+            var tokenDto = _jwtService.Refresh(new UserClaimsValueObject(userId, email), refreshDto);
+
+            if (tokenDto == null)
+            {
+                return new UnauthorizedResult();
+            }
+
+            return new OkObjectResult(tokenDto);
+        }
+        catch (Exception e)
         {
-            return Unauthorized("Invalid token.");
+            _logger.LogError(e, $"Error occurred during {nameof(AuthenticationController)}.{nameof(RefreshToken)} call.");
+            return new InternalServerErrorApiResult();
         }
-
-        var accessToken = bearer.Replace("Bearer ", "");
-        var response = _jwtService.Refresh(accessToken, refreshRequest.RefreshToken, DateTime.UtcNow);
-
-        if (response is null)
-        {
-            return Unauthorized("Invalid token.");
-        }
-
-        return Ok(response);
     }
 
     [HttpDelete]
-    [Route("sign-out")]
-    public async Task<IActionResult> SignOut()
+    [Route("SignOut")]
+    [Authorize]
+    public IActionResult SignOutUser()
     {
-        var stsUser = await _headerService.GetRequestUser(Request);
-        if (stsUser is null)
+        try
         {
-            return BadRequest();
+            var principal = Request.HttpContext.User;
+            var email = principal.FindFirstValue("Email");
+
+            _jwtService.ClearRefreshToken(email);
+
+            return new OkResult();
         }
-
-        Task.Run(() => _jwtService.ClearRefreshToken(stsUser.RowKey));
-
-        return Ok();
-    }
-
-    private async Task<ClaimsIdentity?> GetIdentity(AuthenticationRequest authenticationRequest)
-    {
-        var stsUser = await _stsUserRepository.GetByEmail(authenticationRequest.Email);
-
-        var hashedPassword = _hasher.Hash(authenticationRequest.Password);
-
-        if (stsUser is null || stsUser.Password != hashedPassword)
+        catch (Exception e)
         {
-            return null;
+            _logger.LogError(e, $"Error occurred during {nameof(AuthenticationController)}.{nameof(SignOutUser)} call.");
+            return new InternalServerErrorApiResult();
         }
-
-        var claims = new List<Claim>
-        {
-            new(ClaimsIdentity.DefaultNameClaimType, stsUser.RowKey),
-            new(ClaimsIdentity.DefaultRoleClaimType, "DefaultRole")
-        };
-
-        var claimsIdentity = new ClaimsIdentity(claims, "Token", ClaimsIdentity.DefaultNameClaimType,
-            ClaimsIdentity.DefaultRoleClaimType);
-
-        return claimsIdentity;
     }
 }

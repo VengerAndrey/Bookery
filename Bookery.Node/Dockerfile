@@ -7,7 +7,6 @@ EXPOSE 80
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
 COPY ["Bookery.Node/Bookery.Node.csproj", "Bookery.Node/"]
-COPY ["Bookery.Services/Bookery.Services.csproj", "Bookery.Services/"]
 RUN dotnet restore "Bookery.Node/Bookery.Node.csproj"
 COPY . .
 WORKDIR "/src/Bookery.Node"

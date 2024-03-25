@@ -1,19 +1,10 @@
-using Bookery.Storage.Services;
+using Bookery.Storage.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
-builder.Services.AddSingleton<IStorageService, BlobStorageService>(_ =>
-    new BlobStorageService(
-        builder.Configuration.GetConnectionString("StorageAccount"),
-        builder.Configuration["BlobContainer"]));
-
-var rabbitMq = builder.Configuration.GetSection("RabbitMq");
-
-builder.Services.AddHostedService<StorageConsumer>(provider => new StorageConsumer(rabbitMq["Host"],
-    Convert.ToInt32(rabbitMq["Port"]), rabbitMq["Username"],
-    rabbitMq["Password"], provider.GetRequiredService<IStorageService>()));
+builder.Services.AddServices(builder.Configuration);
 
 builder.Services.AddSwaggerGen();
 

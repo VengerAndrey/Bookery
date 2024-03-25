@@ -10,15 +10,18 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.14.0"/>
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0"/>
-        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.10.0"/>
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.2" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.2" />
+        <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.14.0" />
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.2" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.10.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.2" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Bookery.Config\Bookery.Config.csproj"/>
-        <ProjectReference Include="..\Bookery.Domain\Bookery.Domain.csproj"/>
-        <ProjectReference Include="..\Bookery.Services\Bookery.Services.csproj"/>
+        <ProjectReference Include="..\Bookery.Authentication.Common\Bookery.Authentication.Common.csproj" />
+        <ProjectReference Include="..\Bookery.Common\Bookery.Common.csproj" />
     </ItemGroup>
 
 </Project>

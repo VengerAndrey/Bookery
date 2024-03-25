@@ -1,10 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Bookery.User.Data.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace Bookery.User.Data;
 
 public class AppDbContext : DbContext
 {
-    public DbSet<Models.User> Users { get; set; }
+    public DbSet<UserEntity> Users => Set<UserEntity>();
 
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
@@ -13,14 +14,20 @@ public class AppDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder
-            .Entity<Models.User>()
+            .Entity<UserEntity>()
             .HasKey(x => x.Id);
         modelBuilder
-            .Entity<Models.User>()
-            .Property(x => x.Email).IsRequired();
+            .Entity<UserEntity>()
+            .Property(x => x.Email)
+            .IsRequired();
         modelBuilder
-            .Entity<Models.User>()
-            .Property(x => x.Password).IsRequired();
+            .Entity<UserEntity>()
+            .Property(x => x.FirstName)
+            .IsRequired();
+        modelBuilder
+            .Entity<UserEntity>()
+            .Property(x => x.LastName)
+            .IsRequired();
 
         base.OnModelCreating(modelBuilder);
     }

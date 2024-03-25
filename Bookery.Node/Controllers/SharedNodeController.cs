@@ -1,7 +1,8 @@
-﻿using Bookery.Node.Common;
-using Bookery.Node.Models;
-using Bookery.Node.Services.Common;
-using Bookery.Node.Services.Node;
+﻿using Bookery.Common.Results;
+using Bookery.Node.Common.DTOs.Input;
+using Bookery.Node.Exceptions;
+using Bookery.Node.Extensions;
+using Bookery.Node.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Bookery.Node.Controllers;
@@ -10,257 +11,109 @@ namespace Bookery.Node.Controllers;
 [Route("api/Node/Shared/{*path}")]
 public class SharedNodeController : ControllerBase
 {
-    private readonly IHeaderService _headerService;
-    private readonly INodeService _nodeService;
-    private readonly PathBuilder _pathBuilder;
+    private readonly ILogger<SharedNodeController> _logger;
     private readonly IUserNodeService _userNodeService;
 
-    public SharedNodeController(INodeService nodeService, IUserService userService, IUserNodeService userNodeService,
-        IHeaderService headerService)
+    public SharedNodeController(ILogger<SharedNodeController> logger, IUserNodeService userNodeService)
     {
-        _nodeService = nodeService;
+        _logger = logger;
         _userNodeService = userNodeService;
-        _headerService = headerService;
-        _pathBuilder = new PathBuilder();
     }
 
     [HttpGet]
     public async Task<IActionResult> Get(string? path)
     {
-        var user = await _headerService.GetRequestUser(Request);
-
-        if (user is null)
+        try
         {
-            return StatusCode(StatusCodes.Status401Unauthorized);
+            var userId = Request.GetUserId();
+
+            if (userId == null)
+            {
+                return new UnauthorizedResult();
+            }
+
+            var nodes = await _userNodeService.Get(path, userId.Value);
+
+            return new OkObjectResult(nodes);
         }
-
-        var allNodes = (await _userNodeService.GetAll())
-            .Where(x => x.UserId == user.Id)
-            .Select(async x => await _nodeService.Get(x.NodeId))
-            .Select(x => x.Result)
-            .ToList();
-
-        var virtualRoot = allNodes.ToTree((parent, child) => child.ParentId == parent.Id);
-
-        var levelTree = TreeExtensions.GetLevelTree(virtualRoot, path, true);
-
-        if (levelTree is null)
+        catch (NodeDoesNotExistException)
         {
-            return NotFound();
+            return new NotFoundResult();
         }
-
-        var nodes = levelTree.Children.Select(x => x.Data).ToList();
-
-        return new JsonResult(nodes);
+        catch (Exception e)
+        {
+            _logger.LogError(e, $"Error occurred during {nameof(SharedNodeController)}.{nameof(Get)} call.");
+            return new InternalServerErrorApiResult();
+        }
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create(string? path, [FromBody] Models.Node create)
+    public async Task<IActionResult> Create(string? path, [FromBody] CreateNodeDto createNodeDto)
     {
-        var user = await _headerService.GetRequestUser(Request);
-        var userNodeResult = await GetSharedNode(user, path, false, true);
-
-        if (userNodeResult.ActionResult != null)
+        try
         {
-            return userNodeResult.ActionResult;
-        }
+            var userId = Request.GetUserId();
 
-        if (userNodeResult.LevelTree.Children.All(x => x.Data.Name != create.Name))
-        {
-            if (userNodeResult.UserNode.AccessTypeId != AccessTypeId.Write)
+            if (userId == null)
             {
-                return StatusCode(StatusCodes.Status403Forbidden);
+                return new UnauthorizedResult();
             }
 
-            var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            var (createdNode, createdAtPath) = await _userNodeService.Create(path, createNodeDto, userId.Value);
 
-            _pathBuilder.ParsePath(path);
-            _pathBuilder.AddNode(create.Name);
-
-            create.OwnerId = userNodeResult.LevelTree.Data.OwnerId;
-            create.ModifiedById = user.Id;
-            create.CreatedById = user.Id;
-
-            if (!userNodeResult.LevelTree.IsRoot)
-            {
-                create.ParentId = userNodeResult.LevelTree.Data.Id;
-            }
-
-            create.CreationTimestamp = timestamp;
-            create.ModificationTimestamp = timestamp;
-
-            var created = await _nodeService.Create(create);
-
-            ShareNode(new UserNode
-            {
-                UserId = user.Id,
-                NodeId = created.Id,
-                Timestamp = timestamp,
-                AccessTypeId = AccessTypeId.Write
-            });
-
-            return Created(_pathBuilder.GetPath(), created);
+            return Created(createdAtPath, createdNode);
         }
-
-        return Conflict();
+        catch (NodeDoesNotExistException)
+        {
+            return new NotFoundResult();
+        }
+        catch (NodeAlreadyExistsException)
+        {
+            return new ConflictResult();
+        }
+        catch (InsufficientAccessLevelException)
+        {
+            return new ForbiddenApiResult();
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, $"Error occurred during {nameof(SharedNodeController)}.{nameof(Create)} call.");
+            return new InternalServerErrorApiResult();
+        }
     }
 
     [HttpPut]
-    public async Task<IActionResult> Update(string path, [FromBody] Models.Node update)
+    public async Task<IActionResult> Update(string path, [FromBody] UpdateNodeDto updateNodeDto)
     {
-        var user = await _headerService.GetRequestUser(Request);
-        var userNodeResult = await GetSharedNode(user, path, true, true);
-
-        if (userNodeResult.ActionResult != null)
+        try
         {
-            return userNodeResult.ActionResult;
-        }
+            var userId = Request.GetUserId();
 
-        if (userNodeResult.UserNode.AccessTypeId != AccessTypeId.Write)
-        {
-            return StatusCode(StatusCodes.Status403Forbidden);
-        }
-
-        var entity = await _nodeService.Get(userNodeResult.Node.Id);
-
-        if (entity is null)
-        {
-            return NotFound();
-        }
-
-        entity.Name = update.Name?.Length > 0 ? update.Name : entity.Name;
-        if (update.Size == -1)
-        {
-            entity.Size = null;
-        }
-        else
-        {
-            entity.Size = (update.Size ?? 0) > 0 ? update.Size : entity.Size;
-        }
-
-        entity.ModificationTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-        entity.ModifiedById = user.Id;
-
-        await _nodeService.Update(entity);
-
-        _pathBuilder.ParsePath(path);
-        _pathBuilder.GetLastNode();
-        _pathBuilder.AddNode(update.Name);
-
-        return Accepted(_pathBuilder.GetPath());
-    }
-
-    private async void ShareNode(UserNode userNode)
-    {
-        var allNodes = (await _nodeService.GetAll()).ToList();
-        var virtualRoot = allNodes.ToTree((parent, child) => child.ParentId == parent.Id);
-        var node = await _nodeService.Get(userNode.NodeId);
-
-        var root = TreeExtensions.Find(virtualRoot, node);
-
-        if (root != null)
-        {
-            await ShareChildren(root, userNode);
-
-            var rootUserNode = new UserNode
+            if (userId == null)
             {
-                NodeId = root.Data.Id,
-                UserId = userNode.UserId,
-                AccessTypeId = userNode.AccessTypeId,
-                Timestamp = userNode.Timestamp
-            };
-
-            if (await _userNodeService.Create(rootUserNode) is null)
-            {
-                await _userNodeService.Update(rootUserNode);
-            }
-        }
-    }
-
-    private async Task ShareChildren(TreeExtensions.ITree<Models.Node> node, UserNode userNode)
-    {
-        foreach (var child in node.Children)
-        {
-            if (!child.IsLeaf)
-            {
-                await ShareChildren(child, userNode);
+                return new UnauthorizedResult();
             }
 
-            var leafUserNode = new UserNode
-            {
-                NodeId = child.Data.Id,
-                UserId = userNode.UserId,
-                AccessTypeId = userNode.AccessTypeId,
-                Timestamp = userNode.Timestamp
-            };
+            var (updatedNode, updatedAtPath) = await _userNodeService.Update(path, updateNodeDto, userId.Value);
 
-            if (await _userNodeService.Create(leafUserNode) is null)
-            {
-                await _userNodeService.Update(leafUserNode);
-            }
+            return Accepted(updatedAtPath, updatedNode);
         }
-    }
-
-    private async Task<UserNodeResult> GetSharedNode(User? user, string? path, bool isPreLevelTree,
-        bool differentRoots = false)
-    {
-        var userNodeResult = new UserNodeResult();
-
-        if (user is null)
+        catch (NodeDoesNotExistException)
         {
-            userNodeResult.ActionResult = StatusCode(StatusCodes.Status401Unauthorized);
-            return userNodeResult;
+            return new NotFoundResult();
         }
-
-        var allUserNodes = (await _userNodeService.GetAll()).Where(x => x.UserId == user.Id).ToList();
-        var allUserNodesIds = allUserNodes.Select(x => x.NodeId);
-        var allNodes = (await _nodeService.GetAll()).Where(x => allUserNodesIds.Contains(x.Id)).ToList();
-        var virtualRoot = allNodes.ToTree((parent, child) => child.ParentId == parent.Id);
-
-        _pathBuilder.ParsePath(path);
-
-        if (isPreLevelTree)
+        catch (NodeAlreadyExistsException)
         {
-            _pathBuilder.GetLastNode();
+            return new ConflictResult();
         }
-
-        var levelTree = TreeExtensions.GetLevelTree(virtualRoot, _pathBuilder.GetPath(), differentRoots);
-
-        if (levelTree is null)
+        catch (InsufficientAccessLevelException)
         {
-            userNodeResult.ActionResult = NotFound();
-            return userNodeResult;
+            return new ForbiddenApiResult();
         }
-
-        userNodeResult.LevelTree = levelTree;
-
-        if (!isPreLevelTree)
+        catch (Exception e)
         {
-            userNodeResult.UserNode = allUserNodes.FirstOrDefault(x => x.NodeId == levelTree.Data.Id);
-            return userNodeResult;
+            _logger.LogError(e, $"Error occurred during {nameof(SharedNodeController)}.{nameof(Update)} call.");
+            return new InternalServerErrorApiResult();
         }
-
-        var node = levelTree.Children.FirstOrDefault(x =>
-            (differentRoots && _pathBuilder.GetPath() == string.Empty ? x.Data.Id.ToString() : x.Data.Name) ==
-            _pathBuilder.GetLastNode(path));
-
-        if (node is null)
-        {
-            userNodeResult.ActionResult = NotFound();
-            return userNodeResult;
-        }
-
-        userNodeResult.Node = node.Data;
-        userNodeResult.UserNode = allUserNodes.FirstOrDefault(x => x.NodeId == node.Data.Id);
-
-        return userNodeResult;
-    }
-
-    private class UserNodeResult
-    {
-        public IActionResult? ActionResult { get; set; }
-        public TreeExtensions.ITree<Models.Node> LevelTree { get; set; }
-        public Models.Node Node { get; set; }
-        public UserNode UserNode { get; set; }
     }
 }

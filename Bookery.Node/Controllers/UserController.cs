@@ -1,30 +1,37 @@
-﻿using Bookery.Node.Models;
-using Bookery.Node.Services.Node;
+﻿using Bookery.Common.Results;
+using Bookery.Node.Common.DTOs.Input;
+using Bookery.Node.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Bookery.Node.Controllers;
 
-[Route("api/[controller]")]
+[Route("api/User")]
 [ApiController]
 public class UserController : ControllerBase
 {
+    private readonly ILogger<UserController> _logger;
     private readonly IUserService _userService;
 
-    public UserController(IUserService userService)
+    public UserController(ILogger<UserController> logger, IUserService userService)
     {
         _userService = userService;
+        _logger = logger;
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] User user)
+    [Route("SignUp")]
+    public async Task<IActionResult> SignUp([FromBody] UserSignUpDto userSignUpDto)
     {
-        var created = await _userService.Create(user);
-
-        if (created is null)
+        try
         {
-            return Problem();
-        }
+            await _userService.SignUp(userSignUpDto);
 
-        return Ok(created);
+            return new OkResult();
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, $"Error occurred during {nameof(UserController)}.{nameof(SignUp)} call.");
+            return new InternalServerErrorApiResult();
+        }
     }
 }

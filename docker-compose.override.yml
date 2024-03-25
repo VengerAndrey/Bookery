@@ -1,25 +1,28 @@
 version: '3.4'
 
 services:
-  bookery.api:
+  bookery.gateway:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+      - USER_SECRETS_ID=47d16c66-c69b-4bb9-854a-1b15cab9abea
 
   bookery.authentication:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - USER_SECRETS_ID=1914ca56-257a-45b3-bb6d-e62c46881d49
+      - Postgresql__Server=bookery.postgresql
 
   bookery.node:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+      - USER_SECRETS_ID=e7753005-f7a3-4707-bec8-367b48f2a433
       - Postgresql__Server=bookery.postgresql
 
   bookery.user:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - Postgresql__Server=bookery.postgresql
       - USER_SECRETS_ID=ba705c1b-d76a-4807-a6f6-8f03a210106c
+      - Postgresql__Server=bookery.postgresql
 
   bookery.storage:
     environment:
