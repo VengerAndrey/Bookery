@@ -1,17 +1,53 @@
 {
   "Routes": [
     {
+      "UpstreamPathTemplate": "/Authentication/Token",
+      "UpstreamHttpMethod": [
+        "POST"
+      ],
       "DownstreamScheme": "http",
-      "DownstreamPathTemplate": "/api/Authentication/sign-out",
+      "DownstreamPathTemplate": "/api/Authentication/Token",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "bookery.authentication",
+          "Port": 80
+        }
+      ]
+    },
+    {
+      "UpstreamPathTemplate": "/Authentication/Token/Refresh",
+      "UpstreamHttpMethod": [
+        "POST"
+      ],
+      "DownstreamScheme": "http",
+      "DownstreamPathTemplate": "/api/Authentication/Token/Refresh",
       "DownstreamHostAndPorts": [
         {
           "Host": "bookery.authentication",
           "Port": 80
         }
       ],
-      "UpstreamPathTemplate": "/Authentication/sign-out",
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      },
+      "AddHeadersToRequest": {
+        "Email": "Claims[Email] > value > |",
+        "UserId": "Claims[UserId] > value > |"
+      }
+    },
+    {
+      "UpstreamPathTemplate": "/Authentication/SignOut",
       "UpstreamHttpMethod": [
         "DELETE"
+      ],
+      "DownstreamScheme": "http",
+      "DownstreamPathTemplate": "/api/Authentication/SignOut",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "bookery.authentication",
+          "Port": 80
+        }
       ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
@@ -22,21 +58,13 @@
       }
     },
     {
-      "DownstreamScheme": "http",
-      "DownstreamPathTemplate": "/api/Authentication/{any}",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "bookery.authentication",
-          "Port": 80
-        }
-      ],
-      "UpstreamPathTemplate": "/Authentication/{any}",
+      "UpstreamPathTemplate": "/Node/Private{path}",
       "UpstreamHttpMethod": [
-        "POST"
-      ]
-    },
-
-    {
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE"
+      ],
       "DownstreamScheme": "http",
       "DownstreamPathTemplate": "/api/Node/Private{path}",
       "DownstreamHostAndPorts": [
@@ -45,13 +73,6 @@
           "Port": 80
         }
       ],
-      "UpstreamPathTemplate": "/Node/Private{path}",
-      "UpstreamHttpMethod": [
-        "GET",
-        "POST",
-        "PUT",
-        "DELETE"
-      ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
         "AllowedScopes": []
@@ -61,6 +82,12 @@
       }
     },
     {
+      "UpstreamPathTemplate": "/Node/Shared{path}",
+      "UpstreamHttpMethod": [
+        "GET",
+        "POST",
+        "PUT"
+      ],
       "DownstreamScheme": "http",
       "DownstreamPathTemplate": "/api/Node/Shared{path}",
       "DownstreamHostAndPorts": [
@@ -69,12 +96,6 @@
           "Port": 80
         }
       ],
-      "UpstreamPathTemplate": "/Node/Shared{path}",
-      "UpstreamHttpMethod": [
-        "GET",
-        "POST",
-        "PUT"
-      ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
         "AllowedScopes": []
@@ -84,6 +105,11 @@
       }
     },
     {
+      "UpstreamPathTemplate": "/Node/Sharing{path}",
+      "UpstreamHttpMethod": [
+        "GET",
+        "POST"
+      ],
       "DownstreamScheme": "http",
       "DownstreamPathTemplate": "/api/Node/Sharing{path}",
       "DownstreamHostAndPorts": [
@@ -92,11 +118,6 @@
           "Port": 80
         }
       ],
-      "UpstreamPathTemplate": "/Node/Sharing{path}",
-      "UpstreamHttpMethod": [
-        "GET",
-        "POST"
-      ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
         "AllowedScopes": []
@@ -106,6 +127,11 @@
       }
     },
     {
+      "UpstreamPathTemplate": "/Storage/{id}",
+      "UpstreamHttpMethod": [
+        "GET",
+        "POST"
+      ],
       "DownstreamScheme": "http",
       "DownstreamPathTemplate": "/api/Storage/{id}",
       "DownstreamHostAndPorts": [
@@ -114,11 +140,6 @@
           "Port": 80
         }
       ],
-      "UpstreamPathTemplate": "/Storage/{id}",
-      "UpstreamHttpMethod": [
-        "GET",
-        "POST"
-      ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
         "AllowedScopes": []
@@ -128,20 +149,24 @@
       }
     },
     {
+      "UpstreamPathTemplate": "/User/SignUp",
+      "UpstreamHttpMethod": [
+        "POST"
+      ],
       "DownstreamScheme": "http",
-      "DownstreamPathTemplate": "/api/SignUp/",
+      "DownstreamPathTemplate": "/api/User/SignUp",
       "DownstreamHostAndPorts": [
         {
           "Host": "bookery.user",
           "Port": 80
         }
-      ],
-      "UpstreamPathTemplate": "/SignUp/",
-      "UpstreamHttpMethod": [
-        "POST"
       ]
     },
     {
+      "UpstreamPathTemplate": "/User/{any}",
+      "UpstreamHttpMethod": [
+        "GET"
+      ],
       "DownstreamScheme": "http",
       "DownstreamPathTemplate": "/api/User/{any}",
       "DownstreamHostAndPorts": [
@@ -150,10 +175,6 @@
           "Port": 80
         }
       ],
-      "UpstreamPathTemplate": "/User/{any}",
-      "UpstreamHttpMethod": [
-        "GET"
-      ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
         "AllowedScopes": []
@@ -163,18 +184,18 @@
       }
     },
     {
+      "UpstreamPathTemplate": "/Photo/Profile",
+      "UpstreamHttpMethod": [
+        "GET",
+        "POST"
+      ],
       "DownstreamScheme": "http",
-      "DownstreamPathTemplate": "/api/Photo/",
+      "DownstreamPathTemplate": "/api/Photo/Profile",
       "DownstreamHostAndPorts": [
         {
           "Host": "bookery.user",
           "Port": 80
         }
-      ],
-      "UpstreamPathTemplate": "/Photo/",
-      "UpstreamHttpMethod": [
-        "GET",
-        "POST"
       ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
