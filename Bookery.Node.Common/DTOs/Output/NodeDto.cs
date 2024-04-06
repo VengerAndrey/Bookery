@@ -2,7 +2,7 @@ namespace Bookery.Node.Common.DTOs.Output;
 
 public record NodeDto(
     Guid Id,
-    string? Name,
+    string Name,
     bool IsDirectory,
     long? Size,
     Guid? ParentId,

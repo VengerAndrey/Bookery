@@ -3,7 +3,7 @@
 public class NodeEntity
 {
     public Guid Id { get; set; }
-    public string? Name { get; set; }
+    public string Name { get; set; } = string.Empty;
     public bool IsDirectory { get; set; }
     public long? Size { get; set; }
 
