@@ -45,8 +45,9 @@ public static class DependencyInjectionExtensions
         var port = int.TryParse(configuration["RabbitMq:Port"], out var parsedPort) ? parsedPort : 5672;
         var username = configuration["RabbitMq:Username"];
         var password = configuration["RabbitMq:Password"];
+        var queue = configuration["RabbitMq:Queue"];
 
         serviceCollection.AddSingleton<IStorageProducer, StorageProducer>(_ =>
-            new StorageProducer(hostname, port, username, password));
+            new StorageProducer(hostname, port, username, password, queue));
     }
 }

@@ -30,8 +30,9 @@ public static class DependencyInjectionExtensions
         var port = int.TryParse(configuration["RabbitMq:Port"], out var parsedPort) ? parsedPort : 5672;
         var username = configuration["RabbitMq:Username"];
         var password = configuration["RabbitMq:Password"];
+        var queue = configuration["RabbitMq:Queue"];
         
         serviceCollection.AddHostedService<StorageConsumer>(provider =>
-            new StorageConsumer(provider.GetRequiredService<IServiceScopeFactory>(), hostname, port, username, password));
+            new StorageConsumer(provider.GetRequiredService<IServiceScopeFactory>(), hostname, port, username, password, queue));
     }
 }

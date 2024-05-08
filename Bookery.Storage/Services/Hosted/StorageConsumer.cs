@@ -13,9 +13,10 @@ namespace Bookery.Storage.Services.Hosted
         private IModel? _channel;
         private EventingBasicConsumer? _consumer;
         private readonly IServiceScopeFactory _serviceScopeFactory;
+        private readonly string _queue;
 
         public StorageConsumer(IServiceScopeFactory serviceScopeFactory, string hostname, int port, string username,
-            string password)
+            string password, string queue)
         {
             _serviceScopeFactory = serviceScopeFactory;
             _connectionFactory = new ConnectionFactory()
@@ -25,6 +26,7 @@ namespace Bookery.Storage.Services.Hosted
                 UserName = username,
                 Password = password
             };
+            _queue = queue;
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
@@ -46,7 +48,7 @@ namespace Bookery.Storage.Services.Hosted
             }
 
             _channel = _connection?.CreateModel();
-            _channel?.QueueDeclare(queue: "delete_file",
+            _channel?.QueueDeclare(queue: _queue,
                 durable: false, exclusive: false, autoDelete: false, arguments: null);
 
             _consumer = new EventingBasicConsumer(_channel);
@@ -55,7 +57,7 @@ namespace Bookery.Storage.Services.Hosted
                 var id = Guid.Parse(Encoding.UTF8.GetString(args.Body.Span));
                 await DeleteFile(id);
             };
-            _channel?.BasicConsume(queue: "delete_file", autoAck: true, consumer: _consumer);
+            _channel?.BasicConsume(queue: _queue, autoAck: true, consumer: _consumer);
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
